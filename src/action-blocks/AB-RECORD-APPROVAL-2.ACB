@@ -1,0 +1,109 @@
+*================================================================*
+* CA Gen Action Block
+* Name    : AB-RECORD-APPROVAL-2
+* Process : PROC-VALIDATE-AUTHORITY2-USER / PROC-RECORD-APPROVAL2 /
+*           PROC-NOTIFY-REJECTION-AUTH2
+* Desc    : Records the second authority approval or rejection.
+*           Rules:
+*             - Approver must be active and authorised for level 2
+*             - Approver MUST be a different authority from level-1 approver
+*             - First approval must already be granted
+*================================================================*
+
+ACTION-BLOCK: AB-RECORD-APPROVAL-2
+  IMPORTS:
+    WS-APPLICATION-ID            NUMERIC(10)
+    WS-AUTHORITY-USER-CODE       CHARACTER(20)
+    WS-DECISION                  CHARACTER(1)     * A=Approve, R=Reject
+    WS-DECISION-NOTES            CHARACTER(200)
+
+  EXPORTS:
+    WS-RETURN-CODE               NUMERIC(4)       * 0=OK, 1=App Not Found, 2=Auth Not Found,
+                                                  * 3=Not Authorised, 4=Auth1 Not Done,
+                                                  * 5=Same Approver, 6=Invalid Decision, 99=Err
+    WS-RETURN-MSG                CHARACTER(100)
+
+  LOCAL-VIEWS:
+    LV-APPLICATION               VAPPLICATION-ALL
+    LV-AUTHORITY                 VAUTHORITY-LOOKUP
+    LV-APP-UPDATE                VAPPLICATION-APPROVAL2-UPD
+
+  ACTION-DIAGRAM:
+    MOVE 0 TO WS-RETURN-CODE
+    MOVE SPACES TO WS-RETURN-MSG
+
+    * ------- Validate decision value -------
+    IF WS-DECISION NOT IN ('A', 'R')
+      MOVE 6 TO WS-RETURN-CODE
+      MOVE 'DECISION MUST BE A=APPROVE OR R=REJECT' TO WS-RETURN-MSG
+      ESCAPE
+    END-IF
+
+    * ------- Read application -------
+    READ LV-APPLICATION
+      WHERE LV-APPLICATION.APPLICATION-ID = WS-APPLICATION-ID
+      WHEN NONE
+        MOVE 1 TO WS-RETURN-CODE
+        MOVE 'APPLICATION NOT FOUND' TO WS-RETURN-MSG
+        ESCAPE
+    END-READ
+
+    * ------- Check first approval was granted -------
+    IF LV-APPLICATION.APPROVAL-1-STATUS <> 'A'
+      MOVE 4 TO WS-RETURN-CODE
+      MOVE 'FIRST APPROVAL MUST BE GRANTED BEFORE SECOND APPROVAL' TO WS-RETURN-MSG
+      ESCAPE
+    END-IF
+
+    * ------- Validate authority user -------
+    READ LV-AUTHORITY
+      WHERE LV-AUTHORITY.USER-CODE       = WS-AUTHORITY-USER-CODE
+      AND   LV-AUTHORITY.AUTHORITY-LEVEL = '2'
+      AND   LV-AUTHORITY.ACTIVE-STATUS   = 'A'
+      WHEN NONE
+        MOVE 2 TO WS-RETURN-CODE
+        MOVE 'AUTHORITY USER NOT FOUND OR NOT ACTIVE AT LEVEL 2' TO WS-RETURN-MSG
+        ESCAPE
+    END-READ
+
+    * ------- Check authorised for license type -------
+    IF LV-APPLICATION.LICENSE-TYPE NOT IN LV-AUTHORITY.LICENSE-TYPES-AUTHORISED
+      MOVE 3 TO WS-RETURN-CODE
+      MOVE 'AUTHORITY USER IS NOT AUTHORISED FOR THIS LICENSE TYPE' TO WS-RETURN-MSG
+      ESCAPE
+    END-IF
+
+    * ------- Enforce different approver from level 1 -------
+    IF LV-APPLICATION.APPROVAL-1-AUTHORITY = LV-AUTHORITY.AUTHORITY-NAME
+      MOVE 5 TO WS-RETURN-CODE
+      MOVE 'SECOND APPROVER MUST BE FROM A DIFFERENT AUTHORITY THAN FIRST APPROVER'
+        TO WS-RETURN-MSG
+      ESCAPE
+    END-IF
+
+    * ------- Record approval 2 decision -------
+    CHANGE LV-APP-UPDATE
+      WHERE LV-APP-UPDATE.APPLICATION-ID = WS-APPLICATION-ID
+        MOVE WS-DECISION              TO LV-APP-UPDATE.APPROVAL-2-STATUS
+        MOVE LV-AUTHORITY.AUTHORITY-NAME TO LV-APP-UPDATE.APPROVAL-2-AUTHORITY
+        MOVE CURRENT-DATE             TO LV-APP-UPDATE.APPROVAL-2-DATE
+        MOVE WS-DECISION-NOTES        TO LV-APP-UPDATE.APPROVAL-2-NOTES
+        IF WS-DECISION = 'A'
+          MOVE 'AP' TO LV-APP-UPDATE.APPLICATION-STATUS
+        ELSE
+          MOVE 'RE' TO LV-APP-UPDATE.APPLICATION-STATUS
+          MOVE WS-DECISION-NOTES TO LV-APP-UPDATE.REJECTION-REASON
+        END-IF
+        MOVE CURRENT-DATE             TO LV-APP-UPDATE.LAST-UPDATED-DATE
+        MOVE WS-AUTHORITY-USER-CODE   TO LV-APP-UPDATE.LAST-UPDATED-BY
+    END-CHANGE
+
+    MOVE 0 TO WS-RETURN-CODE
+    IF WS-DECISION = 'A'
+      MOVE 'SECOND APPROVAL GRANTED - APPLICATION FULLY APPROVED FOR LICENSE ISSUE'
+        TO WS-RETURN-MSG
+    ELSE
+      MOVE 'SECOND APPROVAL REJECTED - APPLICATION CLOSED' TO WS-RETURN-MSG
+    END-IF
+
+END-ACTION-BLOCK

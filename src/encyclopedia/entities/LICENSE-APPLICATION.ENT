@@ -1,0 +1,55 @@
+*================================================================*
+* CA Gen Encyclopedia - Entity Definition
+* Entity  : LICENSE-APPLICATION
+* Desc    : Represents a driver license application submitted
+*           by a candidate
+*================================================================*
+
+ENTITY: LICENSE-APPLICATION
+  IDENTIFIER:
+    APPLICATION-ID               NUMERIC(10)       NOT NULL
+
+  ATTRIBUTES:
+    CANDIDATE-ID                 NUMERIC(10)       NOT NULL   * FK -> CANDIDATE
+    LICENSE-TYPE                 CHARACTER(1)      NOT NULL   * L=Learner, P=Probation, O=Open
+    APPLICATION-DATE             DATE              NOT NULL
+    APPLICATION-STATUS           CHARACTER(2)      NOT NULL   * PE=Pending, EC=Eligibility-Checked,
+                                                              * HC=History-Checked, PP=Payment-Pending,
+                                                              * PA=Payment-Approved, A1=Auth1-Pending,
+                                                              * A2=Auth2-Pending, AP=Approved,
+                                                              * RE=Rejected, IS=Issued
+    ELIGIBILITY-CHECK-STATUS     CHARACTER(1)                 * P=Pass, F=Fail, U=Unchecked
+    ELIGIBILITY-CHECK-DATE       DATE
+    ELIGIBILITY-CHECK-NOTES      CHARACTER(200)
+    HISTORY-CHECK-STATUS         CHARACTER(1)                 * P=Pass, F=Fail, U=Unchecked
+    HISTORY-CHECK-DATE           DATE
+    HISTORY-CHECK-NOTES          CHARACTER(200)
+    PAYMENT-STATUS               CHARACTER(1)                 * P=Paid, U=Unpaid, W=Waived
+    PAYMENT-REFERENCE            CHARACTER(20)
+    APPROVAL-1-STATUS            CHARACTER(1)                 * A=Approved, R=Rejected, U=Unchecked
+    APPROVAL-1-AUTHORITY         CHARACTER(50)
+    APPROVAL-1-DATE              DATE
+    APPROVAL-1-NOTES             CHARACTER(200)
+    APPROVAL-2-STATUS            CHARACTER(1)                 * A=Approved, R=Rejected, U=Unchecked
+    APPROVAL-2-AUTHORITY         CHARACTER(50)
+    APPROVAL-2-DATE              DATE
+    APPROVAL-2-NOTES             CHARACTER(200)
+    REJECTION-REASON             CHARACTER(300)
+    CREATED-DATE                 DATE              NOT NULL
+    LAST-UPDATED-DATE            DATE              NOT NULL
+    CREATED-BY                   CHARACTER(20)     NOT NULL
+    LAST-UPDATED-BY              CHARACTER(20)     NOT NULL
+
+  RELATIONSHIPS:
+    BELONGS-TO                   CANDIDATE
+    HAS-ZERO-OR-ONE              ISSUED-LICENSE
+    HAS-ZERO-OR-MORE             PAYMENT
+
+  VALIDATION:
+    LICENSE-TYPE IN ('L', 'P', 'O')
+    APPLICATION-STATUS IN ('PE','EC','HC','PP','PA','A1','A2','AP','RE','IS')
+    ELIGIBILITY-CHECK-STATUS IN ('P', 'F', 'U')
+    HISTORY-CHECK-STATUS IN ('P', 'F', 'U')
+    PAYMENT-STATUS IN ('P', 'U', 'W')
+    APPROVAL-1-STATUS IN ('A', 'R', 'U')
+    APPROVAL-2-STATUS IN ('A', 'R', 'U')

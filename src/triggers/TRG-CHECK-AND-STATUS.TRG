@@ -1,0 +1,143 @@
+*================================================================*
+* CA Gen Trigger Definitions
+* Subject : ELIGIBILITY CHECK, HISTORY CHECK and STATUS screens
+*================================================================*
+
+*----------------------------------------------------------------*
+* TRIGGER: TRG-ELIGIBILITY-RUN
+* Event   : PF1 on SCR-ELIGIBILITY-CHECK
+*----------------------------------------------------------------*
+TRIGGER: TRG-ELIGIBILITY-RUN
+  SCREEN: SCR-ELIGIBILITY-CHECK
+  EVENT:  PF1
+
+  ACTION-DIAGRAM:
+    MOVE FLD-APP-ID  TO WS-APPLICATION-ID
+    MOVE FLD-CHKBY   TO WS-CHECKED-BY
+
+    USE AB-CHECK-ELIGIBILITY
+
+    IF WS-RETURN-CODE = 0
+      MOVE WS-ELIGIBILITY-STATUS TO FLD-ELIG-STAT
+      IF WS-ELIGIBILITY-STATUS = 'P'
+        MOVE 'PASS' TO FLD-ELIG-DESC
+        MOVE 'GREEN' TO FLD-MSG COLOR
+      ELSE
+        MOVE 'FAIL' TO FLD-ELIG-DESC
+        MOVE 'RED' TO FLD-MSG COLOR
+      END-IF
+    ELSE
+      MOVE 'RED' TO FLD-MSG COLOR
+    END-IF
+    MOVE WS-RETURN-MSG TO FLD-MSG
+
+END-TRIGGER
+
+*----------------------------------------------------------------*
+* TRIGGER: TRG-APPLICATION-LOOKUP
+* Event   : PF3 on any screen - loads application summary fields
+*----------------------------------------------------------------*
+TRIGGER: TRG-APPLICATION-LOOKUP
+  SCREEN: SHARED
+  EVENT:  PF3
+
+  ACTION-DIAGRAM:
+    IF FLD-APP-ID IS EMPTY
+      MOVE 'ENTER APPLICATION ID' TO FLD-MSG
+      ESCAPE
+    END-IF
+
+    READ VAPPLICATION-ALL
+      WHERE APPLICATION-ID = FLD-APP-ID
+      IMPORT VAPPLICATION-ALL
+        MOVE LICENSE-TYPE        TO FLD-LIC-TYPE
+        MOVE APPLICATION-STATUS  TO FLD-APP-STAT
+        MOVE ELIGIBILITY-CHECK-STATUS TO FLD-ELIG
+        MOVE HISTORY-CHECK-STATUS     TO FLD-HIST
+        MOVE PAYMENT-STATUS           TO FLD-PAY
+        MOVE APPROVAL-1-STATUS        TO FLD-AUTH1-STAT
+        MOVE APPROVAL-1-AUTHORITY     TO FLD-AUTH1-NAME
+        MOVE APPROVAL-2-STATUS        TO FLD-AUTH2-STAT
+        * Resolve candidate name
+        READ VCANDIDATE-SUMMARY
+          WHERE CANDIDATE-ID = CANDIDATE-ID
+          IMPORT VCANDIDATE-SUMMARY
+            CONCATENATE FIRST-NAME ' ' LAST-NAME INTO FLD-CAND-NAME
+          END-IMPORT
+        END-READ
+        MOVE 'APPLICATION LOADED' TO FLD-MSG
+        MOVE 'GREEN' TO FLD-MSG COLOR
+      END-IMPORT
+      WHEN NONE
+        MOVE 'APPLICATION NOT FOUND' TO FLD-MSG
+        MOVE 'RED' TO FLD-MSG COLOR
+    END-READ
+
+END-TRIGGER
+
+*----------------------------------------------------------------*
+* TRIGGER: TRG-HISTORY-RUN
+* Event   : PF1 on SCR-HISTORY-CHECK
+*----------------------------------------------------------------*
+TRIGGER: TRG-HISTORY-RUN
+  SCREEN: SCR-HISTORY-CHECK
+  EVENT:  PF1
+
+  ACTION-DIAGRAM:
+    MOVE FLD-APP-ID  TO WS-APPLICATION-ID
+    MOVE USER-ID     TO WS-CHECKED-BY
+
+    USE AB-CHECK-HISTORY
+
+    IF WS-RETURN-CODE = 0
+      MOVE WS-HISTORY-STATUS TO FLD-HIST-STAT
+      IF WS-HISTORY-STATUS = 'P'
+        MOVE 'PASS'  TO FLD-HIST-DESC
+        MOVE 'GREEN' TO FLD-MSG COLOR
+      ELSE
+        MOVE 'FAIL' TO FLD-HIST-DESC
+        MOVE 'RED'  TO FLD-MSG COLOR
+      END-IF
+    ELSE
+      MOVE 'RED' TO FLD-MSG COLOR
+    END-IF
+    MOVE WS-RETURN-MSG TO FLD-MSG
+
+END-TRIGGER
+
+*----------------------------------------------------------------*
+* TRIGGER: TRG-STATUS-INQUIRE
+* Event   : ENTER on SCR-APPLICATION-STATUS
+*----------------------------------------------------------------*
+TRIGGER: TRG-STATUS-INQUIRE
+  SCREEN: SCR-APPLICATION-STATUS
+  EVENT:  ENTER
+
+  ACTION-DIAGRAM:
+    MOVE FLD-APP-ID TO WS-APPLICATION-ID
+
+    USE AB-INQUIRE-APPLICATION-STATUS
+
+    IF WS-RETURN-CODE = 0
+      MOVE WS-LICENSE-TYPE    TO FLD-LIC-TYPE
+      MOVE WS-APP-STATUS      TO FLD-APP-STAT
+      MOVE WS-APP-STATUS-DESC TO FLD-APP-DESC
+      MOVE WS-ELIG-STATUS     TO FLD-ELIG
+      MOVE WS-HIST-STATUS     TO FLD-HIST
+      MOVE WS-PAY-STATUS      TO FLD-PAY
+      MOVE WS-APP1-STATUS     TO FLD-AUTH1
+      MOVE WS-APP2-STATUS     TO FLD-AUTH2
+      IF WS-APP-STATUS = 'IS'
+        MOVE WS-LICENSE-NUMBER TO FLD-LIC-NUM
+        MOVE 'YES' TO FLD-LIC-FLAG
+      ELSE
+        MOVE 'NO' TO FLD-LIC-FLAG
+      END-IF
+    ELSE
+      MOVE 'RED' TO FLD-MSG COLOR
+    END-IF
+    MOVE WS-RETURN-MSG TO FLD-MSG
+
+END-TRIGGER
+
+END-TRIGGERS: SHARED-AND-CHECK-SCREENS

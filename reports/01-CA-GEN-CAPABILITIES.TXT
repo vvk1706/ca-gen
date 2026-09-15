@@ -1,0 +1,56 @@
+CA GEN KNOWLEDGE AREAS
+======================
+
+CORE CONCEPTS
+-------------
+CA Gen (formerly known as IEF — Information Engineering Facility, and later Composer) is a
+model-driven, code-generation CASE (Computer-Aided Software Engineering) tool developed by
+CA Technologies (now Broadcom).
+
+It follows the Information Engineering methodology, separating concerns across three planning levels:
+  - ISP  : Information Strategy Planning
+  - BAA  : Business Area Analysis
+  - BSD/ISD : Business/Information Systems Design
+
+
+TOOLSET
+-------
+- EncyclopediaWorkbench  — central repository storing all models and metadata.
+- Analysis Toolset       — for entity/process/data flow modeling (ERDs, DFDs, action diagrams).
+- Design Toolset         — for screen design, procedure design, database design.
+- Construction Toolset   — where action block logic is written using CA Gen's proprietary action language.
+- Generator              — produces target platform code (COBOL, C, Java, etc.) from models.
+
+
+ACTION LANGUAGE / ACTION DIAGRAMS
+----------------------------------
+Procedural logic expressed in structured English-like syntax.
+
+Constructs:
+  IF/ELSE, FOR EACH, ESCAPE, READ, CHANGE, CREATE, DELETE, MOVE, CALL
+
+Works against views of entities defined in the encyclopedia.
+
+
+KEY ARTIFACTS
+-------------
+- Entities & Attributes  — the data model.
+- Business Functions / Procedures — process decomposition.
+- Action Blocks          — reusable logic units (local or imported/exported).
+- Views                  — subsets of entity attributes used in action blocks.
+- Triggers               — event-driven logic on screens/procedures.
+- Transaction/Screen Maps — UI definitions for generated applications.
+
+
+SUPPORTED TARGETS
+-----------------
+- Mainframe   : COBOL + CICS / IMS / DB2
+- Client/Server: C, Visual Basic
+- Web          : Java / JSP
+
+
+TYPICAL USE CASES
+-----------------
+- Legacy mainframe application development and maintenance.
+- Round-trip engineering (model <-> generated code).
+- Impact analysis across large enterprise models.

@@ -1,0 +1,25 @@
+prompt:
+create a comprehensive documentation for the project including architecture diagrams
+
+
+------------------
+ToDo list    
+
+Create main documentation file (README / overview)
+Create architecture document with ERD diagram
+Create process flow / workflow diagram document
+Create screen navigation map document
+Create action block reference document
+Create business rules document
+Create data dictionary document
+Create deployment / generation guide document
+--------------------
+
+Write File docs/README.md
+Write File docs/01-ARCHITECTURE.md
+Write File docs/02-WORKFLOW.md
+Write File docs/03-SCREEN-NAVIGATION.md
+Write File docs/04-ACTION-BLOCK-REFERENCE.md
+Write File docs/05-BUSINESS-RULES.md
+Write File docs/06-DATA-DICTIONARY.md
+Write File docs/07-DEPLOYMENT-GUIDE.md

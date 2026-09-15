@@ -1,0 +1,81 @@
+*================================================================*
+* CA Gen Screen Map Definition
+* Screen  : SCR-APPROVAL-AUTH1
+* Process : PROC-RETRIEVE-PENDING-AUTH1 / PROC-RECORD-APPROVAL1
+* Desc    : First authority approval/rejection screen
+*================================================================*
+
+SCREEN-MAP: SCR-APPROVAL-AUTH1
+  TITLE:    'DRIVER LICENSE SYSTEM - FIRST AUTHORITY APPROVAL'
+  SIZE:     24 ROWS x 80 COLUMNS
+  TYPE:     DATA-ENTRY
+
+  HEADER:
+    ROW 1  COL 1   LITERAL  'DLIS            FIRST AUTHORITY APPROVAL               '
+    ROW 1  COL 60  LITERAL  'DATE: '
+    ROW 1  COL 66  FIELD    CURRENT-DATE          OUTPUT  PIC 99/99/9999
+    ROW 2  COL 1   LITERAL  REPEAT '-' 80
+
+  BODY:
+    ROW 4  COL 2   LITERAL  'APPLICATION ID  : '
+    ROW 4  COL 20  FIELD    APPLICATION-ID        INPUT    PIC Z(9)9   NAME(FLD-APP-ID)
+                                                  REQUIRED
+
+    ROW 5  COL 2   LITERAL  'CANDIDATE NAME  : '
+    ROW 5  COL 20  FIELD    CAND-FULL-NAME        OUTPUT   PIC X(60)   NAME(FLD-CAND-NAME)
+
+    ROW 6  COL 2   LITERAL  'LICENSE TYPE    : '
+    ROW 6  COL 20  FIELD    LICENSE-TYPE          OUTPUT   PIC X(1)    NAME(FLD-LIC-TYPE)
+    ROW 6  COL 22  FIELD    LICENSE-TYPE-DESC     OUTPUT   PIC X(20)   NAME(FLD-LIC-DESC)
+
+    ROW 7  COL 2   LITERAL  'APP STATUS      : '
+    ROW 7  COL 20  FIELD    APPLICATION-STATUS    OUTPUT   PIC X(2)    NAME(FLD-APP-STAT)
+    ROW 7  COL 23  FIELD    APP-STATUS-DESC       OUTPUT   PIC X(40)   NAME(FLD-APP-DESC)
+
+    ROW 8  COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 9  COL 2   LITERAL  'ELIG CHECK      : '
+    ROW 9  COL 20  FIELD    ELIG-STATUS           OUTPUT   PIC X(1)    NAME(FLD-ELIG)
+    ROW 9  COL 22  FIELD    ELIG-NOTES            OUTPUT   PIC X(40)   NAME(FLD-ELIG-N)
+
+    ROW 10 COL 2   LITERAL  'HISTORY CHECK   : '
+    ROW 10 COL 20  FIELD    HIST-STATUS           OUTPUT   PIC X(1)    NAME(FLD-HIST)
+    ROW 10 COL 22  FIELD    HIST-NOTES            OUTPUT   PIC X(40)   NAME(FLD-HIST-N)
+
+    ROW 11 COL 2   LITERAL  'PAYMENT         : '
+    ROW 11 COL 20  FIELD    PAYMENT-STATUS        OUTPUT   PIC X(1)    NAME(FLD-PAY)
+    ROW 11 COL 22  FIELD    PAYMENT-REFERENCE     OUTPUT   PIC X(20)   NAME(FLD-PAY-REF)
+
+    ROW 12 COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 13 COL 2   LITERAL  'AUTHORITY CODE  : '
+    ROW 13 COL 20  FIELD    AUTHORITY-USER-CODE   INPUT    PIC X(20)   NAME(FLD-AUTH-CODE)
+                                                  REQUIRED
+
+    ROW 14 COL 2   LITERAL  'AUTHORITY NAME  : '
+    ROW 14 COL 20  FIELD    AUTHORITY-NAME        OUTPUT   PIC X(50)   NAME(FLD-AUTH-NAME)
+
+    ROW 15 COL 2   LITERAL  'DECISION        : '
+    ROW 15 COL 20  FIELD    DECISION              INPUT    PIC X(1)    NAME(FLD-DECISION)
+                                                  REQUIRED
+                                                  VALUES('A','R')
+    ROW 15 COL 22  LITERAL  '(A=APPROVE  R=REJECT)'
+
+    ROW 16 COL 2   LITERAL  'DECISION NOTES  : '
+    ROW 16 COL 20  FIELD    DECISION-NOTES        INPUT    PIC X(60)   NAME(FLD-DEC-NOTES)
+
+  MESSAGES:
+    ROW 22 COL 2   FIELD    MSG-TEXT              OUTPUT  PIC X(76)  NAME(FLD-MSG)
+                                                  COLOR(GREEN)
+
+  FOOTER:
+    ROW 23 COL 1   LITERAL  REPEAT '-' 80
+    ROW 24 COL 2   LITERAL  'F1=SUBMIT DECISION  F3=LOAD APP  F4=VALIDATE AUTHORITY  F12=EXIT'
+
+  PFKEY-ACTIONS:
+    PF1  TRIGGER: TRG-APPROVAL1-SUBMIT
+    PF3  TRIGGER: TRG-APPLICATION-LOOKUP
+    PF4  TRIGGER: TRG-AUTHORITY-VALIDATE
+    PF12 RETURN
+
+END-SCREEN-MAP

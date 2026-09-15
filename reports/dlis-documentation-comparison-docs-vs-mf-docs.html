@@ -1,0 +1,328 @@
+
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>DLIS Documentation Comparison</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; background: #ffffff; color: #1f2328; padding: 32px 24px; }
+  .container { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .subtitle { color: #57606a; font-size: 13px; margin-bottom: 28px; }
+  h2 { font-size: 15px; font-weight: 700; margin: 28px 0 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+  h3 { font-size: 13px; font-weight: 700; margin: 18px 0 6px; color: #1f2328; }
+  p { margin-bottom: 10px; }
+  .verdict { background: #f7f8fa; border: 1px solid #e5e7eb; border-left: 4px solid #3b82d4; padding: 12px 16px; border-radius: 4px; margin-bottom: 24px; font-size: 14px; }
+  .verdict strong { display: block; font-size: 15px; margin-bottom: 4px; }
+
+  /* Two-column header row */
+  .col-headers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 4px; }
+  .col-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 6px 10px; border-radius: 4px; }
+  .col-label.ca-gen { background: #eff6ff; color: #1d4ed8; }
+  .col-label.mf { background: #f0fdf4; color: #15803d; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 13px; }
+  th { background: #f7f8fa; border: 1px solid #e5e7eb; padding: 6px 10px; text-align: left; font-weight: 600; }
+  td { border: 1px solid #e5e7eb; padding: 6px 10px; vertical-align: top; }
+  td.label { font-weight: 600; color: #57606a; white-space: nowrap; width: 22%; }
+  td.ca { background: #fafbff; }
+  td.mf { background: #fafff7; }
+
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 10px; margin: 1px 2px; }
+  .tag-same { background: #dcfce7; color: #15803d; }
+  .tag-diff { background: #fef3c7; color: #92400e; }
+  .tag-only-ca { background: #eff6ff; color: #1d4ed8; }
+  .tag-only-mf { background: #f0fdf4; color: #15803d; }
+  .tag-conflict { background: #fee2e2; color: #991b1b; }
+
+  .diff-section { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .diff-cell { background: #f7f8fa; border: 1px solid #e5e7eb; border-radius: 4px; padding: 10px 12px; font-size: 13px; }
+  .diff-cell.ca-cell { border-top: 3px solid #3b82d4; }
+  .diff-cell.mf-cell { border-top: 3px solid #22c55e; }
+  .diff-cell .cell-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #57606a; margin-bottom: 6px; }
+  ul { padding-left: 18px; margin-bottom: 6px; }
+  li { margin-bottom: 3px; }
+  code { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; background: #f7f8fa; border: 1px solid #e5e7eb; padding: 1px 4px; border-radius: 3px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; font-size: 12px; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; color: #57606a; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>DLIS Documentation Comparison</h1>
+  <p class="subtitle">Driver License Issuance System — <code>docs/</code> (CA Gen model) vs <code>mf/docs/</code> (hand-written COBOL/CICS implementation)</p>
+
+  <div class="verdict">
+    <strong>Yes — they document the same application.</strong>
+    Both sets describe the <em>Driver License Issuance System (DLIS)</em>: the same seven entities, the same 8-step sequential workflow (PE→EC→HC→PA→A2→AP→IS / RE), the same three license types (L/P/O), the same dual-authority approval with segregation of duties, and the same 10 screens accessed via an identical menu. The fundamental difference is <strong>abstraction level and technology layer</strong>: <code>docs/</code> describes the CA Gen model-level design; <code>mf/docs/</code> describes the hand-written COBOL/CICS artifact that either was generated from, inspired by, or is intended to be compared against that model.
+  </div>
+
+  <div class="legend">
+    <span class="tag tag-same">● Identical</span>
+    <span class="tag tag-diff">● Differs in detail</span>
+    <span class="tag tag-only-ca">● Only in docs/</span>
+    <span class="tag tag-only-mf">● Only in mf/docs/</span>
+    <span class="tag tag-conflict">● Minor conflict</span>
+  </div>
+
+  
+  <h2>1. Top-Level Overview</h2>
+  <div class="col-headers">
+    <div class="col-label ca-gen">docs/ — CA Gen Model</div>
+    <div class="col-label mf">mf/docs/ — COBOL/CICS Implementation</div>
+  </div>
+  <table>
+    <tr><th>Dimension</th><th class="ca">docs/</th><th class="mf">mf/docs/</th></tr>
+    <tr>
+      <td class="label">Technology</td>
+      <td class="ca">CA Gen Information Engineering — encyclopedia, action blocks, screen maps, triggers, views</td>
+      <td class="mf">IBM Enterprise COBOL · CICS/TS · DB2 for z/OS · BMS 3270</td>
+    </tr>
+    <tr>
+      <td class="label">Runtime</td>
+      <td class="ca">CA Gen generated code (COBOL/CICS <em>or</em> Java, as a CA Gen output option)</td>
+      <td class="mf">Hand-written COBOL compiled with IGYCRCTL, deployed to CICS region via JCL</td>
+    </tr>
+    <tr>
+      <td class="label">Abstraction</td>
+      <td class="ca">Model layer: entities, views, action blocks — logic captured in encyclopedia notation</td>
+      <td class="mf">Executable layer: COBOL paragraphs, EXEC CICS/SQL statements, BMS mapsets, JCL procs</td>
+    </tr>
+    <tr>
+      <td class="label">Document count</td>
+      <td class="ca">8 files (README + 7 docs)</td>
+      <td class="mf">6 files (README + 5 docs)</td>
+    </tr>
+    <tr>
+      <td class="label">Unique coverage areas</td>
+      <td class="ca">Business rules catalogue (29 rules), data dictionary, detailed workflow diagrams (Mermaid)</td>
+      <td class="mf">COMMAREA layout, CICS program map, pseudo-conversational pattern, JCL build/bind/deploy, DB2 indexes &amp; grants, BMS field attributes</td>
+    </tr>
+  </table>
+
+  
+  <h2>2. Document-by-Document Mapping</h2>
+  <table>
+    <tr><th>docs/ document</th><th>Closest mf/docs/ equivalent</th><th>Alignment</th></tr>
+    <tr>
+      <td>01-ARCHITECTURE.md — CA Gen layer diagram, ERD, state machine, call chain, security</td>
+      <td>01-MF-ARCHITECTURE.md — CICS tier diagram, transaction map, COMMAREA, state machine, eligibility/history rules, licence number format</td>
+      <td><span class="tag tag-same">Same domain</span> <span class="tag tag-diff">Different abstraction</span></td>
+    </tr>
+    <tr>
+      <td>02-WORKFLOW.md — detailed process flowcharts, lifecycle table, eligibility/history/payment/approval logic diagrams</td>
+      <td>(README quick-reference + 01-MF-ARCHITECTURE §History/Eligibility rules)</td>
+      <td><span class="tag tag-only-ca">No dedicated MF equivalent</span></td>
+    </tr>
+    <tr>
+      <td>03-SCREEN-NAVIGATION.md — screen inventory, navigation flow, PF-key table per screen, layout conventions</td>
+      <td>04-MF-SCREENS.md — BMS mapset layouts, field-level attributes, PF keys, actual row/col positions</td>
+      <td><span class="tag tag-same">Same screens</span> <span class="tag tag-diff">MF is more precise (pixel-level BMS)</span></td>
+    </tr>
+    <tr>
+      <td>04-ACTION-BLOCK-REFERENCE.md — 9 ABs with imports/exports/logic per AB</td>
+      <td>03-MF-PROGRAMS.md — 10 COBOL programs with paragraph-level logic</td>
+      <td><span class="tag tag-same">1:1 logical mapping</span> <span class="tag tag-diff">Different artifact type</span></td>
+    </tr>
+    <tr>
+      <td>05-BUSINESS-RULES.md — 29 named rules (BR-01–BR-29), each with enforcement point and error message</td>
+      <td>(No dedicated document; rules embedded in 01-MF-ARCHITECTURE and 03-MF-PROGRAMS)</td>
+      <td><span class="tag tag-only-ca">Only in docs/</span></td>
+    </tr>
+    <tr>
+      <td>06-DATA-DICTIONARY.md — 7 entities, all attributes, valid values, relationships</td>
+      <td>02-MF-DATA-MODEL.md — 7 DB2 tables, all columns, constraints, indexes, foreign keys, grants, tablespaces</td>
+      <td><span class="tag tag-same">Same entities/attributes</span> <span class="tag tag-diff">MF adds physical DB2 detail</span></td>
+    </tr>
+    <tr>
+      <td>07-DEPLOYMENT-GUIDE.md — CA Gen encyclopedia load order, generation steps, JCL template, reference data, security roles, test checklist</td>
+      <td>05-MF-BUILD-DEPLOY.md — JCL jobs (DLISDB2/DLISBMS/DLISCOMP/DLISBIND/DLISCSD), PROCs, CSD definitions, full build sequence, re-compile procedure</td>
+      <td><span class="tag tag-diff">Both cover deployment; MF is JCL-specific, CA Gen covers model generation</span></td>
+    </tr>
+  </table>
+
+  
+  <h2>3. Workflow / Business Logic — Agreements &amp; Differences</h2>
+
+  <h3>Status code pipeline <span class="tag tag-same">Identical</span></h3>
+  <p>Both define the exact same eight states in the same order: <code>PE → EC → HC → PA → A2 → AP → IS</code>, with <code>RE</code> as a rejection terminal at any gate.</p>
+
+  <h3>Status code A1 <span class="tag tag-conflict">Minor conflict</span></h3>
+  <div class="diff-section">
+    <div class="diff-cell ca-cell">
+      <div class="cell-title">docs/ (06-DATA-DICTIONARY)</div>
+      Lists <code>A1</code> as a valid <code>APPLICATION-STATUS</code> value: "Awaiting First Authority Approval". The workflow doc (02) notes it is a "display alias" only.
+    </div>
+    <div class="diff-cell mf-cell">
+      <div class="cell-title">mf/docs/ (02-MF-DATA-MODEL)</div>
+      DB2 <code>CHECK</code> constraint explicitly includes <code>A1</code> as a permitted column value alongside <code>A2</code>. No mention of it being alias-only — it is a real DB2 constraint value.
+    </div>
+  </div>
+
+  <h3>Eligibility rules <span class="tag tag-same">Identical</span></h3>
+  <p>Both define identical minimum ages (L≥16, P≥17, O≥18) and prior-licence prerequisites for Probation and Open. Both use current-year minus DOB-year arithmetic.</p>
+
+  <h3>History check rules <span class="tag tag-same">Identical</span></h3>
+  <p>Both define three fail conditions: active <code>SU</code>/<code>DQ</code> suspension, demerit total &gt; 12, unpaid fines. The MF doc specifies a 50-row cursor buffer; <code>docs/</code> does not.</p>
+
+  <h3>Dual-authority segregation <span class="tag tag-same">Identical</span></h3>
+  <p>Both enforce: Level-1 approver must differ from Level-2 approver's <code>AUTHORITY_NAME</code>/<code>APPROVAL-1-AUTHORITY</code>. Both require the approver to hold the correct level and to be authorised for the licence type.</p>
+
+  <h3>Licence number format <span class="tag tag-same">Identical</span></h3>
+  <p>Both define: <code>LRN</code>/<code>PRB</code>/<code>OPN</code> prefix + vehicle class + CANDIDATE_ID + APPLICATION_ID. Validity periods (1/2/5 years) are identical. Starting demerit balance of 12 is identical.</p>
+
+  
+  <h2>4. Data Model — Agreements &amp; Differences</h2>
+  <table>
+    <tr><th>Aspect</th><th class="ca">docs/ (entity model)</th><th class="mf">mf/docs/ (DB2 tables)</th><th>Status</th></tr>
+    <tr>
+      <td>Entity/table count</td>
+      <td class="ca">7 entities</td>
+      <td class="mf">7 tables</td>
+      <td><span class="tag tag-same">Identical</span></td>
+    </tr>
+    <tr>
+      <td>Entity names</td>
+      <td class="ca">Hyphenated: CANDIDATE, LICENSE-APPLICATION, etc.</td>
+      <td class="mf">Underscored: CANDIDATE, LICENSE_APPLICATION, etc.</td>
+      <td><span class="tag tag-diff">Naming convention only</span></td>
+    </tr>
+    <tr>
+      <td>Attribute counts</td>
+      <td class="ca">CANDIDATE: 15 attrs<br />LICENSE_APPLICATION: 24 attrs</td>
+      <td class="mf">CANDIDATE: 15 cols<br />LICENSE_APPLICATION: 25 cols (adds LAST_UPDATED_BY)</td>
+      <td><span class="tag tag-diff">MF has a few extra audit columns</span></td>
+    </tr>
+    <tr>
+      <td>ADDRESS_LINE_2 on CANDIDATE</td>
+      <td class="ca">Present</td>
+      <td class="mf">Present</td>
+      <td><span class="tag tag-same">Identical</span></td>
+    </tr>
+    <tr>
+      <td>Physical DB2 details</td>
+      <td class="ca">Not present (model-level only)</td>
+      <td class="mf">Tablespaces (DLISTS01/02), IDENTITY columns, check constraints, indexes (XCAND01–XFEE02), ROW locking, DB2 grants</td>
+      <td><span class="tag tag-only-mf">Only in mf/docs/</span></td>
+    </tr>
+    <tr>
+      <td>Foreign key relationships</td>
+      <td class="ca">Described textually in entity relationships</td>
+      <td class="mf">Explicit FK constraint names (APPL_CAND, HIST_CAND, PAY_APPL, PAY_CAND, LIC_APPL, LIC_CAND)</td>
+      <td><span class="tag tag-diff">MF is more precise</span></td>
+    </tr>
+    <tr>
+      <td>PAYMENT.PAYMENT_STATUS codes</td>
+      <td class="ca"><code>S</code>=Success, <code>F</code>=Failed, <code>R</code>=Refunded, <code>P</code>=Pending</td>
+      <td class="mf"><code>S</code>=Settled, <code>F</code>=Failed, <code>R</code>=Refunded, <code>P</code>=Pending</td>
+      <td><span class="tag tag-diff">S meaning: "Success" vs "Settled"</span></td>
+    </tr>
+    <tr>
+      <td>ISSUED_LICENSE.LICENSE_STATUS</td>
+      <td class="ca"><code>R</code>=Revoked</td>
+      <td class="mf"><code>R</code>=Renewed</td>
+      <td><span class="tag tag-conflict">Conflict — same code, different meaning</span></td>
+    </tr>
+  </table>
+
+  
+  <h2>5. Screens — Agreements &amp; Differences</h2>
+  <table>
+    <tr><th>Screen</th><th class="ca">docs/ name</th><th class="mf">mf/docs/ name</th><th>PF keys</th></tr>
+    <tr><td>Main menu</td><td class="ca">SCR-MAIN-MENU</td><td class="mf">DLISMM01</td><td><span class="tag tag-same">Identical</span></td></tr>
+    <tr><td>Candidate maintenance</td><td class="ca">SCR-CANDIDATE-MAINT</td><td class="mf">DLISCM01</td><td><span class="tag tag-same">F1/F2/F3/F4/F12 — identical</span></td></tr>
+    <tr><td>Application entry</td><td class="ca">SCR-APPLICATION-ENTRY</td><td class="mf">DLISAE01</td><td><span class="tag tag-same">F1/F3/F5/F12 — identical</span></td></tr>
+    <tr><td>Eligibility check</td><td class="ca">SCR-ELIGIBILITY-CHECK</td><td class="mf">DLISEC01</td><td><span class="tag tag-same">F1/F3/F12 — identical</span></td></tr>
+    <tr><td>History check</td><td class="ca">SCR-HISTORY-CHECK</td><td class="mf">DLISHC01</td><td><span class="tag tag-same">F1/F3/F7/F8/F12 — identical</span></td></tr>
+    <tr><td>Payment entry</td><td class="ca">SCR-PAYMENT-ENTRY</td><td class="mf">DLISPE01</td><td><span class="tag tag-same">F1/F3/F5/F12 — identical</span></td></tr>
+    <tr><td>First approval</td><td class="ca">SCR-APPROVAL-AUTH1</td><td class="mf">DLISA1M01</td><td><span class="tag tag-same">F1/F3/F4/F12 — identical</span></td></tr>
+    <tr><td>Second approval</td><td class="ca">SCR-APPROVAL-AUTH2</td><td class="mf">DLISA2M01</td><td><span class="tag tag-same">F1/F3/F4/F12 — identical</span></td></tr>
+    <tr><td>Licence issuance</td><td class="ca">SCR-LICENSE-ISSUE</td><td class="mf">DLISLIM01</td><td><span class="tag tag-same">F1/F3/F6/F12 — identical</span></td></tr>
+    <tr><td>Status inquiry</td><td class="ca">SCR-APPLICATION-STATUS</td><td class="mf">DLISST01</td><td><span class="tag tag-same">ENTER/F12 — identical</span></td></tr>
+  </table>
+  <p>Both sets define exactly 10 screens in the same menu order (options 1–10). The CA Gen doc describes logical screen IDs; the MF doc gives BMS mapset names, field-level attributes (PROT/UNPROT/NUM/BRT), row/column coordinates, and the 24×80 terminal format.</p>
+
+  
+  <h2>6. Deployment — Key Differences</h2>
+  <div class="diff-section">
+    <div class="diff-cell ca-cell">
+      <div class="cell-title">docs/ — CA Gen deployment (07-DEPLOYMENT-GUIDE)</div>
+      <ul>
+        <li>Load encyclopedia: entities → views → BFNs → ABs → screens → triggers (36 files)</li>
+        <li>CA Gen DDL generation from Design Toolset</li>
+        <li>CA Gen Application Generation (CICS/COBOL <em>or</em> Java/JSP target)</li>
+        <li>Generic IGYWCL JCL template — not per-program</li>
+        <li>CICS transaction table in deployment guide</li>
+        <li>Reference data SQL + security roles table</li>
+        <li>Happy-path and negative test checklist</li>
+      </ul>
+    </div>
+    <div class="diff-cell mf-cell">
+      <div class="cell-title">mf/docs/ — Hand-written COBOL deployment (05-MF-BUILD-DEPLOY)</div>
+      <ul>
+        <li>Full multi-step JCL: DLISDB2 → DLISBMS → DLISCOMP → DLISBIND → DLISCSD</li>
+        <li>Named PROCs: DLISCLNK (DB2 precompile + COBOL compile + link-edit), DLISBASM (BMS 2-pass assembly)</li>
+        <li>Per-program DB2 BIND PACKAGE + BIND PLAN(DLISPLAN)</li>
+        <li>DFHCSDUP CSD install with DLISGRP / DLISLIST</li>
+        <li>DB2ENTRY DLISDB2E configuration (thread limit, wait policy, rollback behaviour)</li>
+        <li>Step-by-step re-compile/NEWCOPY/PHASEIN procedure</li>
+        <li>COND code logic explained per step</li>
+      </ul>
+    </div>
+  </div>
+
+  
+  <h2>7. Topics Exclusive to Each Set</h2>
+  <div class="diff-section">
+    <div class="diff-cell ca-cell">
+      <div class="cell-title">Only in docs/ (CA Gen)</div>
+      <ul>
+        <li>29 formally numbered business rules (BR-01 – BR-29) with error messages</li>
+        <li>Mermaid process flowcharts and sequence diagrams for every workflow stage</li>
+        <li>View layer architecture (ALL / CREATE / UPDATE / LOOKUP / CHECK / RECEIPT views)</li>
+        <li>CA Gen toolset layer diagram (encyclopedia → generator → target)</li>
+        <li>Action Block import/export interface contracts (9 ABs, each with typed parameter tables)</li>
+        <li>Trigger catalogue (TRG-CANDIDATE-MAINT, TRG-APPLICATION-ENTRY, etc.)</li>
+        <li>Security role matrix (DLIS-CLERK, DLIS-CHECKER, DLIS-AUTH1/2, etc.)</li>
+        <li>Java/distributed deployment option</li>
+      </ul>
+    </div>
+    <div class="diff-cell mf-cell">
+      <div class="cell-title">Only in mf/docs/ (COBOL/CICS)</div>
+      <ul>
+        <li>COMMAREA design — 350-byte layout, three overlapping 01-level structures</li>
+        <li>Pseudo-conversational CICS pattern (EXEC CICS RETURN TRANSID … COMMAREA)</li>
+        <li>EXEC CICS XCTL vs LINK distinction (navigation vs print helpers)</li>
+        <li>BMS field attribute tables (PROT/UNPROT/NUM/BRT/IC/FREEKB) with row/col coordinates</li>
+        <li>DB2 indexes (XCAND01–XFEE02), tablespaces, LOCKSIZE ROW, IDENTITY columns</li>
+        <li>DB2 BIND details: isolation level (CS), RELEASE(DEALLOCATE), CURRENTDATA(NO)</li>
+        <li>JCL COND code semantics explained</li>
+        <li>DLISRPRT / DLISLPRT print stub programs</li>
+        <li>Transaction timeout values (10 s / 30 s) and SPURGE(YES)</li>
+        <li>DB2ENTRY DLISDB2E settings (THREADLIMIT, THREADWAIT, DROLLBACK)</li>
+        <li>Re-compile single program / CEMT NEWCOPY procedure</li>
+      </ul>
+    </div>
+  </div>
+
+  
+  <h2>8. Summary — Are They the Same Application?</h2>
+  <table>
+    <tr><th>Question</th><th>Answer</th></tr>
+    <tr><td>Same system name?</td><td>Yes — <em>Driver License Issuance System (DLIS)</em></td></tr>
+    <tr><td>Same business purpose?</td><td>Yes — end-to-end driver licence issuance with eligibility, history, payment, dual approval, issuance</td></tr>
+    <tr><td>Same workflow?</td><td>Yes — identical 8-step pipeline with the same status codes</td></tr>
+    <tr><td>Same data model?</td><td>Yes — 7 identical entities/tables; MF adds physical DB2 detail</td></tr>
+    <tr><td>Same screens?</td><td>Yes — 10 screens, same functions, same PF keys</td></tr>
+    <tr><td>Same license types?</td><td>Yes — L/P/O with same ages and validity periods</td></tr>
+    <tr><td>Same business rules?</td><td>Yes — <code>docs/</code> names and numbers them formally; <code>mf/docs/</code> embeds them in program logic descriptions</td></tr>
+    <tr><td>Generated or hand-written?</td><td><code>docs/</code> is the CA Gen design model; <code>mf/docs/</code> is a hand-written COBOL/CICS implementation — it may be the implementation target, an independently written parallel, or the result of customising generated code</td></tr>
+    <tr><td>Any genuine conflicts?</td><td>Two minor ones: <code>ISSUED_LICENSE.LICENSE_STATUS R</code> means "Revoked" in CA Gen docs but "Renewed" in MF docs; <code>A1</code> status is a "display alias" in CA Gen but a real DB2 CHECK value in MF</td></tr>
+  </table>
+
+  <div class="footer">Made with IBM Bob</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+*================================================================*
+* CA Gen Encyclopedia - Entity Definition
+* Entity  : PAYMENT
+* Desc    : Payment transactions associated with a license
+*           application
+*================================================================*
+
+ENTITY: PAYMENT
+  IDENTIFIER:
+    PAYMENT-ID                   NUMERIC(10)       NOT NULL
+
+  ATTRIBUTES:
+    APPLICATION-ID               NUMERIC(10)       NOT NULL   * FK -> LICENSE-APPLICATION
+    CANDIDATE-ID                 NUMERIC(10)       NOT NULL   * FK -> CANDIDATE
+    PAYMENT-DATE                 DATE              NOT NULL
+    PAYMENT-AMOUNT               NUMERIC(10,2)     NOT NULL
+    PAYMENT-METHOD               CHARACTER(2)      NOT NULL   * CC=Credit Card, DC=Debit Card,
+                                                              * EF=EFT, CS=Cash, CH=Cheque
+    PAYMENT-REFERENCE            CHARACTER(30)     NOT NULL
+    PAYMENT-STATUS               CHARACTER(1)      NOT NULL   * S=Success, F=Failed, R=Refunded,
+                                                              * P=Pending
+    LICENSE-TYPE                 CHARACTER(1)      NOT NULL   * L=Learner, P=Probation, O=Open
+    FEE-TYPE                     CHARACTER(2)      NOT NULL   * IF=Issue Fee, RF=Renewal Fee,
+                                                              * LF=Late Fee, PF=Processing Fee
+    RECEIPT-NUMBER               CHARACTER(20)
+    PROCESSED-BY                 CHARACTER(20)
+    NOTES                        CHARACTER(200)
+
+  RELATIONSHIPS:
+    BELONGS-TO                   LICENSE-APPLICATION
+    BELONGS-TO                   CANDIDATE
+
+  VALIDATION:
+    PAYMENT-METHOD IN ('CC', 'DC', 'EF', 'CS', 'CH')
+    PAYMENT-STATUS IN ('S', 'F', 'R', 'P')
+    LICENSE-TYPE IN ('L', 'P', 'O')
+    FEE-TYPE IN ('IF', 'RF', 'LF', 'PF')
+    PAYMENT-AMOUNT > 0

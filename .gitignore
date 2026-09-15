@@ -1,0 +1,52 @@
+# Local Bob configuration and generated artifacts
+.bob/
+
+# Environment variables and local configuration
+.env
+.env.*
+!.env.example
+*.local
+
+# Credentials and secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*credentials*
+*secrets*
+
+# SSH keys
+id_rsa
+id_rsa.*
+id_dsa
+id_dsa.*
+id_ecdsa
+id_ecdsa.*
+id_ed25519
+id_ed25519.*
+
+# Cloud and infrastructure credentials
+.aws/
+.azure/
+.gcloud/
+.kube/
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Local databases and potentially sensitive exports
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.bak
+
+# Operating system and editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo

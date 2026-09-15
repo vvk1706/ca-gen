@@ -1,0 +1,130 @@
+*================================================================*
+* CA Gen Encyclopedia - Views Definition
+* Subject : LICENSE-APPLICATION entity views
+*================================================================*
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-ALL
+* Desc : Full application view for maintenance and inquiry
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-ALL OF LICENSE-APPLICATION
+  APPLICATION-ID
+  CANDIDATE-ID
+  LICENSE-TYPE
+  APPLICATION-DATE
+  APPLICATION-STATUS
+  ELIGIBILITY-CHECK-STATUS
+  ELIGIBILITY-CHECK-DATE
+  ELIGIBILITY-CHECK-NOTES
+  HISTORY-CHECK-STATUS
+  HISTORY-CHECK-DATE
+  HISTORY-CHECK-NOTES
+  PAYMENT-STATUS
+  PAYMENT-REFERENCE
+  APPROVAL-1-STATUS
+  APPROVAL-1-AUTHORITY
+  APPROVAL-1-DATE
+  APPROVAL-1-NOTES
+  APPROVAL-2-STATUS
+  APPROVAL-2-AUTHORITY
+  APPROVAL-2-DATE
+  APPROVAL-2-NOTES
+  REJECTION-REASON
+  CREATED-DATE
+  LAST-UPDATED-DATE
+  CREATED-BY
+  LAST-UPDATED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-CREATE
+* Desc : View for creating a new application
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-CREATE OF LICENSE-APPLICATION
+  CANDIDATE-ID
+  LICENSE-TYPE
+  APPLICATION-DATE
+  APPLICATION-STATUS
+  CREATED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-ELIGIBILITY-UPD
+* Desc : View for updating eligibility check result
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-ELIGIBILITY-UPD OF LICENSE-APPLICATION
+  APPLICATION-ID
+  ELIGIBILITY-CHECK-STATUS
+  ELIGIBILITY-CHECK-DATE
+  ELIGIBILITY-CHECK-NOTES
+  APPLICATION-STATUS
+  LAST-UPDATED-DATE
+  LAST-UPDATED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-HISTORY-UPD
+* Desc : View for updating history check result
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-HISTORY-UPD OF LICENSE-APPLICATION
+  APPLICATION-ID
+  HISTORY-CHECK-STATUS
+  HISTORY-CHECK-DATE
+  HISTORY-CHECK-NOTES
+  APPLICATION-STATUS
+  LAST-UPDATED-DATE
+  LAST-UPDATED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-PAYMENT-UPD
+* Desc : View for updating payment status
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-PAYMENT-UPD OF LICENSE-APPLICATION
+  APPLICATION-ID
+  PAYMENT-STATUS
+  PAYMENT-REFERENCE
+  APPLICATION-STATUS
+  LAST-UPDATED-DATE
+  LAST-UPDATED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-APPROVAL1-UPD
+* Desc : View for First Authority approval update
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-APPROVAL1-UPD OF LICENSE-APPLICATION
+  APPLICATION-ID
+  APPROVAL-1-STATUS
+  APPROVAL-1-AUTHORITY
+  APPROVAL-1-DATE
+  APPROVAL-1-NOTES
+  APPLICATION-STATUS
+  LAST-UPDATED-DATE
+  LAST-UPDATED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-APPROVAL2-UPD
+* Desc : View for Second Authority approval update
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-APPROVAL2-UPD OF LICENSE-APPLICATION
+  APPLICATION-ID
+  APPROVAL-2-STATUS
+  APPROVAL-2-AUTHORITY
+  APPROVAL-2-DATE
+  APPROVAL-2-NOTES
+  APPLICATION-STATUS
+  REJECTION-REASON
+  LAST-UPDATED-DATE
+  LAST-UPDATED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VAPPLICATION-STATUS
+* Desc : Status inquiry view - lightweight read
+*----------------------------------------------------------------*
+VIEW: VAPPLICATION-STATUS OF LICENSE-APPLICATION
+  APPLICATION-ID
+  CANDIDATE-ID
+  LICENSE-TYPE
+  APPLICATION-STATUS
+  ELIGIBILITY-CHECK-STATUS
+  HISTORY-CHECK-STATUS
+  PAYMENT-STATUS
+  APPROVAL-1-STATUS
+  APPROVAL-2-STATUS
+  LAST-UPDATED-DATE

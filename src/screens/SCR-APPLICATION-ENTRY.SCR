@@ -1,0 +1,63 @@
+*================================================================*
+* CA Gen Screen Map Definition
+* Screen  : SCR-APPLICATION-ENTRY
+* Process : PROC-CREATE-APPLICATION
+* Desc    : Screen for submitting a new driver license application
+*           Candidate selects license type: L, P or O
+*================================================================*
+
+SCREEN-MAP: SCR-APPLICATION-ENTRY
+  TITLE:    'DRIVER LICENSE SYSTEM - LICENSE APPLICATION ENTRY'
+  SIZE:     24 ROWS x 80 COLUMNS
+  TYPE:     DATA-ENTRY
+
+  HEADER:
+    ROW 1  COL 1   LITERAL  'DLIS              LICENSE APPLICATION ENTRY             '
+    ROW 1  COL 60  LITERAL  'DATE: '
+    ROW 1  COL 66  FIELD    CURRENT-DATE          OUTPUT  PIC 99/99/9999
+    ROW 2  COL 1   LITERAL  REPEAT '-' 80
+
+  BODY:
+    ROW 4  COL 2   LITERAL  'APPLICATION ID  : '
+    ROW 4  COL 20  FIELD    APPLICATION-ID        OUTPUT   PIC Z(9)9   NAME(FLD-APP-ID)
+
+    ROW 5  COL 2   LITERAL  'CANDIDATE ID    : '
+    ROW 5  COL 20  FIELD    CANDIDATE-ID          INPUT    PIC Z(9)9   NAME(FLD-CAND-ID)
+                                                  REQUIRED
+
+    ROW 6  COL 2   LITERAL  'CANDIDATE NAME  : '
+    ROW 6  COL 20  FIELD    CAND-FULL-NAME        OUTPUT   PIC X(60)   NAME(FLD-CAND-NAME)
+
+    ROW 8  COL 2   LITERAL  'LICENSE TYPE    : '
+    ROW 8  COL 20  FIELD    LICENSE-TYPE          INPUT    PIC X(1)    NAME(FLD-LIC-TYPE)
+                                                  REQUIRED
+                                                  VALUES('L','P','O')
+    ROW 8  COL 22  LITERAL  '(L=LEARNER  P=PROBATION  O=OPEN)'
+
+    ROW 10 COL 2   LITERAL  'APPLICATION DATE: '
+    ROW 10 COL 20  FIELD    APPLICATION-DATE      OUTPUT   PIC 99/99/9999  NAME(FLD-APP-DATE)
+
+    ROW 11 COL 2   LITERAL  'STATUS          : '
+    ROW 11 COL 20  FIELD    APPLICATION-STATUS    OUTPUT   PIC X(2)    NAME(FLD-APP-STATUS)
+
+    ROW 13 COL 2   LITERAL  'FEE APPLICABLE  : '
+    ROW 13 COL 20  FIELD    FEE-AMOUNT            OUTPUT   PIC ZZZ,ZZ9.99  NAME(FLD-FEE)
+
+    ROW 14 COL 2   LITERAL  'CURRENCY        : '
+    ROW 14 COL 20  FIELD    CURRENCY-CODE         OUTPUT   PIC X(3)    NAME(FLD-CURR)
+
+  MESSAGES:
+    ROW 22 COL 2   FIELD    MSG-TEXT              OUTPUT  PIC X(76)  NAME(FLD-MSG)
+                                                  COLOR(GREEN)
+
+  FOOTER:
+    ROW 23 COL 1   LITERAL  REPEAT '-' 80
+    ROW 24 COL 2   LITERAL  'F1=SUBMIT  F3=LOOKUP CANDIDATE  F5=CALC FEE  F12=EXIT'
+
+  PFKEY-ACTIONS:
+    PF1  TRIGGER: TRG-APPLICATION-SUBMIT
+    PF3  TRIGGER: TRG-CANDIDATE-LOOKUP
+    PF5  TRIGGER: TRG-FEE-CALCULATE
+    PF12 RETURN
+
+END-SCREEN-MAP

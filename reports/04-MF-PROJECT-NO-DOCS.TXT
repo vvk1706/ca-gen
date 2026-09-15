@@ -1,0 +1,75 @@
+prompt:
+create dicrectory mf and build a mainframe project out of current ca gen projects. mainframe project needs to include all necessary mainframe artefacts. please do not creat documentation at this time
+
+Update Todo List
+
+Analyze CA Gen artifacts to plan mainframe structure
+Create JCL (Job Control Language) members
+Create COBOL copybooks (from entities/views)
+Create COBOL working storage and procedure modules
+Create CICS BMS maps (from screen maps)
+Create COBOL programs (from action blocks + triggers)
+Create DB2 DDL (from entities)
+Create CICS resource definitions (CSD)
+Create bind/compile JCL procedures
+
+
+-----------------------------------
+Good. I have the full picture. Let me now build the complete mainframe project.
+
+Structure plan for mf/:
+
+copybook/ — COBOL copybooks for each entity, view, and working storage layouts
+cobol/ — COBOL programs for each action block + trigger set + main menu
+bms/ — CICS BMS macro maps for each screen
+db2/ — DB2 DDL (tables, indexes, RI constraints, grants)
+jcl/ — JCL for compile, link, DB2 bind, BMS assembly, deploy
+csd/ — CICS CSD resource definitions
+proc/ — JCL PROC members (reusable compile/link procedures)
+
+Write File mf/db2/DLIS0001-CREATE-TABLES.sql
+Write File mf/db2/DLIS0002-CREATE-INDEXES.sql
+Write File mf/db2/DLIS0003-GRANTS.sql
+
+Now creating COBOL copybooks.
+Write File mf/copybook/DLISDCLG.cpy
+Write File mf/copybook/DLISWS.cpy
+Write File mf/copybook/DLISCSEC.cpy
+
+Now creating CICS BMS maps for all screens.
+Write File mf/bms/DLISMM.bms
+Write File mf/bms/DLISCM.bms
+Write File mf/bms/DLISAE.bms
+Write File mf/bms/DLISECHPE.bms
+Write File mf/bms/DLISAPPR.bms
+
+Now creating all COBOL programs.
+Write File mf/cobol/DLISCAND.cbl
+Write File mf/cobol/DLISAPPL.cbl
+Write File mf/cobol/DLISELIG.cbl
+Write File mf/cobol/DLISHIST.cbl
+Write File mf/cobol/DLISPAY.cbl
+Write File mf/cobol/DLISAP1.cbl
+Write File mf/cobol/DLISAP2.cbl
+Write File mf/cobol/DLISCAND.cbl
+Write File mf/cobol/DLISAPPL.cbl
+Write File mf/cobol/DLISELIG.cbl
+Write File mf/cobol/DLISHIST.cbl
+Write File mf/cobol/DLISPAY.cbl
+Write File mf/cobol/DLISAP1.cbl
+Write File mf/cobol/DLISAP2.cbl
+Write File mf/cobol/DLISISSU.cbl
+Write File mf/cobol/DLISSTAT.cbl
+Write File mf/cobol/DLISMENU.cbl
+
+All COBOL programs done. Now creating JCL, CICS CSD, and procedures.
+Write File mf/jcl/DLISDB2.jcl
+Write File mf/jcl/DLISCOMP.jcl
+Write File mf/jcl/DLISBMS.jcl
+Write File mf/jcl/DLISBIND.jcl
+Write File mf/proc/DLISCLNK.proc
+Write File mf/proc/DLISBASM.proc
+
+Now creating CICS CSD resource definitions.
+Write File mf/csd/DLISCSD.csd
+Write File mf/jcl/DLISCSD.jcl

@@ -1,0 +1,60 @@
+prompt:
+moving to directory mf build a comprehensive documentation considering only source code there. extract business logic and build architecture diagrams. put documentation into directory mf/docs
+
+Update Todo List
+Edit
+Read and analyze all mf/ source files
+Create mf/docs/README.md (index)
+Create mf/docs/01-MF-ARCHITECTURE.md (layer diagrams, program map)
+Create mf/docs/02-MF-DATA-MODEL.md (DB2 tables, indexes, RI)
+Create mf/docs/03-MF-PROGRAMS.md (each COBOL program - logic extracted)
+Create mf/docs/04-MF-SCREENS.md (BMS maps, field layouts, PF keys)
+Create mf/docs/05-MF-BUILD-DEPLOY.md (JCL, PROCs, CSD, build sequence
+
+Read and return the FULL content of the following files. Return each file's content verbatim, labelled by filename:
+
+mf/cobol/DLISMENU.cbl
+mf/cobol/DLISCAND.cbl
+mf/cobol/DLISAPPL.cbl
+mf/cobol/DLISELIG.cbl
+mf/cobol/DLISHIST.cbl
+mf/cobol/DLISPAY.cbl
+mf/cobol/DLISAP1.cbl
+mf/cobol/DLISAP2.cbl
+mf/cobol/DLISISSU.cbl
+mf/cobol/DLISSTAT.cbl
+
+Read and return the FULL content of the following files. Return each file's content verbatim, labelled by filename:
+
+mf/copybook/DLISDCLG.cpy
+mf/copybook/DLISWS.cpy
+mf/copybook/DLISCSEC.cpy
+mf/db2/DLIS0001-CREATE-TABLES.sql
+mf/db2/DLIS0002-CREATE-INDEXES.sql
+mf/db2/DLIS0003-GRANTS.sql
+mf/proc/DLISCLNK.proc
+mf/proc/DLISBASM.proc
+mf/jcl/DLISCOMP.jcl
+mf/jcl/DLISBIND.jcl
+mf/jcl/DLISDB2.jcl
+mf/jcl/DLISBMS.jcl
+mf/jcl/DLISCSD.jcl
+mf/csd/DLISCSD.csd
+
+Good. Now I have all the source content. Let me read the COBOL programs directly.
+
+I now have all the source material. Let me set up the todo list and start writing the documentation files:
+Now write the screens and build/deploy documents:
+
+
+All six documentation files are written to mf/docs/. Here's what was produced:
+
+File	Size	Content
+README.md	4 KB	Index with workflow overview, transaction quick-reference, directory layout
+01-MF-ARCHITECTURE.md	9 KB	System layer diagram, CICS program map, COMMAREA design, state machine, eligibility/history/approval rules, licence number format
+02-MF-DATA-MODEL.md	12 KB	ER diagram, all 7 table definitions with column types/constraints, FK relationships, full index inventory, DB2 grants
+03-MF-PROGRAMS.md	16 KB	Extracted business logic for all 10 COBOL programs — validations, SQL operations, decision branches, shared copybooks
+04-MF-SCREENS.md	14 KB	BMS map layouts with row/column positions, all field names/lengths/attributes, PF-key assignments for every screen
+05-MF-BUILD-DEPLOY.md	10 KB	Full build sequence (DB2 DDL → BMS → compile → bind → CSD), both PROCs explained step by step, complete deploy checklist, re-compile/refresh procedures
+
+

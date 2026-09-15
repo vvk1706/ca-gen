@@ -1,0 +1,71 @@
+*================================================================*
+* CA Gen Screen Map Definition
+* Screen  : SCR-HISTORY-CHECK
+* Process : PROC-RETRIEVE-DRIVING-HISTORY / PROC-RECORD-HISTORY-RESULT
+* Desc    : Screen for viewing and recording history check results
+*================================================================*
+
+SCREEN-MAP: SCR-HISTORY-CHECK
+  TITLE:    'DRIVER LICENSE SYSTEM - DRIVING HISTORY CHECK'
+  SIZE:     24 ROWS x 80 COLUMNS
+  TYPE:     DATA-ENTRY
+
+  HEADER:
+    ROW 1  COL 1   LITERAL  'DLIS              DRIVING HISTORY CHECK                '
+    ROW 1  COL 60  LITERAL  'DATE: '
+    ROW 1  COL 66  FIELD    CURRENT-DATE          OUTPUT  PIC 99/99/9999
+    ROW 2  COL 1   LITERAL  REPEAT '-' 80
+
+  BODY:
+    ROW 4  COL 2   LITERAL  'APPLICATION ID  : '
+    ROW 4  COL 20  FIELD    APPLICATION-ID        INPUT    PIC Z(9)9   NAME(FLD-APP-ID)
+                                                  REQUIRED
+
+    ROW 5  COL 2   LITERAL  'CANDIDATE NAME  : '
+    ROW 5  COL 20  FIELD    CAND-FULL-NAME        OUTPUT   PIC X(60)   NAME(FLD-CAND-NAME)
+
+    ROW 6  COL 2   LITERAL  'LICENSE TYPE    : '
+    ROW 6  COL 20  FIELD    LICENSE-TYPE          OUTPUT   PIC X(1)    NAME(FLD-LIC-TYPE)
+
+    ROW 7  COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 8  COL 2   LITERAL  ' HISTORY RECORDS (ACTIVE):'
+    ROW 9  COL 2   LITERAL  ' DATE       TYPE DESC                             DEMERIT'
+    ROW 10 COL 2   LITERAL  REPEAT '-' 76
+
+    * Scrollable list area - rows 11-17
+    ROW 11 COL 2   SCROLL-FIELD  HISTORY-LIST     OUTPUT   PIC X(76)   NAME(FLD-HIST)
+                                                  ROWS(7)
+
+    ROW 18 COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 19 COL 2   LITERAL  'TOTAL DEMERITS  : '
+    ROW 19 COL 20  FIELD    TOTAL-DEMERIT-POINTS  OUTPUT   PIC ZZ9     NAME(FLD-DEMERIT)
+
+    ROW 20 COL 2   LITERAL  'ACTIVE SUSPENSN : '
+    ROW 20 COL 20  FIELD    ACTIVE-SUSPENSION     OUTPUT   PIC X(3)    NAME(FLD-SUSP)
+    ROW 20 COL 24  LITERAL  ' (YES/NO)'
+
+    ROW 21 COL 2   LITERAL  'UNPAID FINES    : '
+    ROW 21 COL 20  FIELD    UNPAID-FINES          OUTPUT   PIC X(3)    NAME(FLD-FINES)
+    ROW 21 COL 24  LITERAL  ' (YES/NO)'
+
+    ROW 22 COL 2   LITERAL  'HISTORY STATUS  : '
+    ROW 22 COL 20  FIELD    HISTORY-STATUS        OUTPUT   PIC X(1)    NAME(FLD-HIST-STAT)
+    ROW 22 COL 22  FIELD    HISTORY-STATUS-DESC   OUTPUT   PIC X(30)   NAME(FLD-HIST-DESC)
+
+  MESSAGES:
+    ROW 23 COL 2   FIELD    MSG-TEXT              OUTPUT  PIC X(76)  NAME(FLD-MSG)
+                                                  COLOR(GREEN)
+
+  FOOTER:
+    ROW 24 COL 2   LITERAL  'F1=RUN CHECK  F3=LOOKUP APP  F8=SCROLL DOWN  F7=SCROLL UP  F12=EXIT'
+
+  PFKEY-ACTIONS:
+    PF1  TRIGGER: TRG-HISTORY-RUN
+    PF3  TRIGGER: TRG-APPLICATION-LOOKUP
+    PF7  SCROLL-UP
+    PF8  SCROLL-DOWN
+    PF12 RETURN
+
+END-SCREEN-MAP

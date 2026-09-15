@@ -1,0 +1,184 @@
+DRIVER LICENSE ISSUANCE SYSTEM (DLIS) - CA GEN PROJECT SUMMARY
+===============================================================
+
+All 43 CA Gen artifacts created across the src/ project structure.
+
+
+1. ENCYCLOPEDIA ENTITIES  (src/encyclopedia/entities/)
+-------------------------------------------------------
+7 Entities defined:
+
+  CANDIDATE.ENT
+    - License applicant personal data
+
+  LICENSE-APPLICATION.ENT
+    - Application with full status lifecycle:
+      PE=Pending -> EC=Eligibility Checked -> HC=History Checked ->
+      PA=Payment Approved -> A1=Auth1 Pending -> A2=Auth2 Pending ->
+      AP=Approved -> IS=Issued (or RE=Rejected at any stage)
+
+  DRIVING-HISTORY.ENT
+    - Offences, accidents, suspensions, demerit points
+
+  PAYMENT.ENT
+    - Fee payment transactions
+
+  ISSUED-LICENSE.ENT
+    - The issued license record
+
+  AUTHORITY-USER.ENT
+    - Approving officers at level 1 and level 2
+
+  LICENSE-FEE-SCHEDULE.ENT
+    - Fee amounts per license type
+
+
+2. ENCYCLOPEDIA VIEWS  (src/encyclopedia/views/)
+-------------------------------------------------
+24 Views across 6 view files.
+Purpose-scoped views per operation:
+  ALL, CREATE, status updates, lookups,
+  eligibility/history/payment/approval updates.
+
+  VCANDIDATE.VEW          - 4 views (ALL, SUMMARY, ID-LOOKUP, ELIGIBILITY)
+  VAPPLICATION.VEW        - 7 views (ALL, CREATE, ELIGIBILITY-UPD,
+                                     HISTORY-UPD, PAYMENT-UPD,
+                                     APPROVAL1-UPD, APPROVAL2-UPD, STATUS)
+  VHISTORY.VEW            - 3 views (ALL, CHECK, SUMMARY)
+  VPAYMENT.VEW            - 4 views (ALL, CREATE, STATUS, RECEIPT)
+  VLICENSE.VEW            - 4 views (ALL, CREATE, SUMMARY, STATUS-UPD)
+  VAUTHORITY-AND-FEES.VEW - 4 views (AUTHORITY-ALL, AUTHORITY-LOOKUP,
+                                     FEE-SCHEDULE-ALL, FEE-LOOKUP)
+
+
+3. BUSINESS FUNCTIONS  (src/encyclopedia/functions/)
+-----------------------------------------------------
+1 file, 9 Business Functions, 36 Processes.
+BUSINESS-FUNCTIONS.BFN - full ISP/BAA/BSD process decomposition:
+
+  BF-CANDIDATE-MANAGEMENT       - Candidate registration & maintenance
+  BF-LICENSE-APPLICATION        - Capture and manage applications
+  BF-ELIGIBILITY-CHECK          - Age, ID and upgrade path validation
+  BF-HISTORY-CHECK              - Suspension, demerit, unpaid fine checks
+  BF-PAYMENT-PROCESSING         - Fee calculation and payment recording
+  BF-APPROVAL-AUTHORITY-1       - First level authority review
+  BF-APPROVAL-AUTHORITY-2       - Second level authority review
+  BF-LICENSE-ISSUANCE           - Generate and issue the driver license
+  BF-LICENSE-INQUIRY            - Inquire and maintain issued licenses
+
+
+4. ACTION BLOCKS  (src/action-blocks/)
+---------------------------------------
+9 Action Blocks with full action diagram logic:
+
+  AB-CREATE-CANDIDATE.ACB
+    - Validate & create candidate (duplicate ID check, DOB validation)
+
+  AB-CREATE-APPLICATION.ACB
+    - Create application with license type selection (L/P/O)
+    - Checks for existing active application
+
+  AB-CHECK-ELIGIBILITY.ACB
+    - Age check per license type:
+        Learner >= 16, Probation >= 17, Open >= 18
+    - Upgrade path enforcement: L -> P -> O
+    - Records Pass/Fail result on application
+
+  AB-CHECK-HISTORY.ACB
+    - Checks active suspension or disqualification
+    - Tallies total demerit points (threshold: 12)
+    - Identifies unpaid fines
+    - Records Pass/Fail result on application
+
+  AB-PROCESS-PAYMENT.ACB
+    - Looks up fee schedule per license type
+    - Records payment with method and reference
+    - Generates receipt number
+    - Updates application payment status
+
+  AB-RECORD-APPROVAL-1.ACB
+    - Validates level-1 authority user and license type authorisation
+    - Records Approve or Reject decision
+    - Advances or closes application accordingly
+
+  AB-RECORD-APPROVAL-2.ACB
+    - Validates level-2 authority user
+    - Enforces DIFFERENT authority from first approver
+    - Records Approve or Reject decision
+    - On approve: sets status AP (ready to issue)
+
+  AB-ISSUE-LICENSE.ACB
+    - Full pre-issue gate check (all steps must be complete)
+    - Generates unique license number
+    - Calculates expiry: Learner=1yr, Probation=2yrs, Open=5yrs
+    - Creates ISSUED-LICENSE record
+    - Updates application status to IS=Issued
+
+  AB-INQUIRE-APPLICATION-STATUS.ACB
+    - Returns full end-to-end status with human-readable description
+    - Returns license number if already issued
+
+
+5. SCREEN MAPS  (src/screens/)
+-------------------------------
+9 Screens covering every step of the workflow:
+
+  SCR-MAIN-MENU.SCR           - Main menu with options 1-15
+  SCR-CANDIDATE-MAINT.SCR     - Candidate registration & maintenance
+  SCR-APPLICATION-ENTRY.SCR   - New license application entry (L/P/O)
+  SCR-ELIGIBILITY-CHECK.SCR   - Eligibility check execution & result
+  SCR-HISTORY-CHECK.SCR       - History check with scrollable history list
+  SCR-PAYMENT-ENTRY.SCR       - Payment capture & receipt generation
+  SCR-APPROVAL-AUTH1.SCR      - First authority approval screen
+  SCR-APPROVAL-AUTH2.SCR      - Second authority approval screen
+                                (shows first approver for segregation check)
+  SCR-LICENSE-ISSUE.SCR       - Final license issuance screen
+  SCR-APPLICATION-STATUS.SCR  - End-to-end application status inquiry
+
+
+6. TRIGGERS  (src/triggers/)
+------------------------------
+4 Trigger files, 20+ Triggers wiring PF-key events to Action Blocks:
+
+  TRG-CANDIDATE-MAINT.TRG
+    - TRG-CANDIDATE-CREATE    (PF1)
+    - TRG-CANDIDATE-UPDATE    (PF2)
+    - TRG-CANDIDATE-INQUIRE   (PF3)
+    - TRG-CANDIDATE-DEACTIVATE(PF4)
+
+  TRG-APPLICATION-ENTRY.TRG
+    - TRG-APPLICATION-SUBMIT  (PF1) -> AB-CREATE-APPLICATION
+    - TRG-CANDIDATE-LOOKUP    (PF3)
+    - TRG-FEE-CALCULATE       (PF5)
+
+  TRG-CHECK-AND-STATUS.TRG
+    - TRG-ELIGIBILITY-RUN     (PF1) -> AB-CHECK-ELIGIBILITY
+    - TRG-APPLICATION-LOOKUP  (PF3) shared across screens
+    - TRG-HISTORY-RUN         (PF1) -> AB-CHECK-HISTORY
+    - TRG-STATUS-INQUIRE      (ENTER) -> AB-INQUIRE-APPLICATION-STATUS
+
+  TRG-PAYMENT-APPROVAL-ISSUE.TRG
+    - TRG-PAYMENT-PROCESS     (PF1) -> AB-PROCESS-PAYMENT
+    - TRG-RECEIPT-PRINT       (PF5)
+    - TRG-APPROVAL1-SUBMIT    (PF1) -> AB-RECORD-APPROVAL-1
+    - TRG-AUTHORITY-VALIDATE  (PF4) shared across approval screens
+    - TRG-APPROVAL2-SUBMIT    (PF1) -> AB-RECORD-APPROVAL-2
+    - TRG-LICENSE-ISSUE       (PF1) -> AB-ISSUE-LICENSE
+    - TRG-LICENSE-PRINT       (PF6)
+    - TRG-MENU-SELECT         (ENTER)
+
+
+KEY BUSINESS RULES IMPLEMENTED
+================================
+  1. License types: L=Learner, P=Probation, O=Open
+  2. Minimum age: Learner=16, Probation=17, Open=18
+  3. Upgrade path enforced: must hold L before P, must hold P before O
+  4. Eligibility check must pass before history check
+  5. History check must pass before payment
+  6. Payment must be completed before first approval
+  7. First approval must be granted before second approval
+  8. Second approver MUST be from a DIFFERENT authority than first approver
+  9. All five gates (eligibility, history, payment, auth1, auth2) must be
+     satisfied before license can be issued
+ 10. License validity: Learner=1yr, Probation=2yrs, Open=5yrs
+ 11. History disqualifiers: active suspension, demerit>12, unpaid fines

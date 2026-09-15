@@ -1,0 +1,86 @@
+*================================================================*
+* CA Gen Screen Map Definition
+* Screen  : SCR-CANDIDATE-MAINT
+* Process : PROC-CREATE-CANDIDATE / PROC-MAINTAIN-CANDIDATE
+* Desc    : Candidate registration and maintenance screen
+*================================================================*
+
+SCREEN-MAP: SCR-CANDIDATE-MAINT
+  TITLE:    'DRIVER LICENSE SYSTEM - CANDIDATE MAINTENANCE'
+  SIZE:     24 ROWS x 80 COLUMNS
+  TYPE:     DATA-ENTRY
+
+  HEADER:
+    ROW 1  COL 1   LITERAL  'DLIS                CANDIDATE MAINTENANCE               '
+    ROW 1  COL 60  LITERAL  'DATE: '
+    ROW 1  COL 66  FIELD    CURRENT-DATE          OUTPUT  PIC 99/99/9999
+    ROW 2  COL 1   LITERAL  REPEAT '-' 80
+
+  BODY:
+    ROW 4  COL 2   LITERAL  'CANDIDATE ID    : '
+    ROW 4  COL 20  FIELD    CANDIDATE-ID          INPUT-OUTPUT  PIC Z(9)9   NAME(FLD-CAND-ID)
+
+    ROW 5  COL 2   LITERAL  'FIRST NAME      : '
+    ROW 5  COL 20  FIELD    FIRST-NAME            INPUT-OUTPUT  PIC X(30)   NAME(FLD-FNAME)
+                                                  REQUIRED
+
+    ROW 6  COL 2   LITERAL  'LAST NAME       : '
+    ROW 6  COL 20  FIELD    LAST-NAME             INPUT-OUTPUT  PIC X(30)   NAME(FLD-LNAME)
+                                                  REQUIRED
+
+    ROW 7  COL 2   LITERAL  'DATE OF BIRTH   : '
+    ROW 7  COL 20  FIELD    DATE-OF-BIRTH         INPUT-OUTPUT  PIC 99/99/9999 NAME(FLD-DOB)
+                                                  REQUIRED
+
+    ROW 8  COL 2   LITERAL  'NATIONAL ID NO  : '
+    ROW 8  COL 20  FIELD    ID-NUMBER             INPUT-OUTPUT  PIC X(20)   NAME(FLD-IDNO)
+                                                  REQUIRED
+
+    ROW 9  COL 2   LITERAL  'ADDRESS LINE 1  : '
+    ROW 9  COL 20  FIELD    ADDRESS-LINE-1        INPUT-OUTPUT  PIC X(50)   NAME(FLD-ADDR1)
+                                                  REQUIRED
+
+    ROW 10 COL 2   LITERAL  'ADDRESS LINE 2  : '
+    ROW 10 COL 20  FIELD    ADDRESS-LINE-2        INPUT-OUTPUT  PIC X(50)   NAME(FLD-ADDR2)
+
+    ROW 11 COL 2   LITERAL  'CITY            : '
+    ROW 11 COL 20  FIELD    CITY                  INPUT-OUTPUT  PIC X(30)   NAME(FLD-CITY)
+                                                  REQUIRED
+
+    ROW 12 COL 2   LITERAL  'STATE/PROVINCE  : '
+    ROW 12 COL 20  FIELD    STATE-PROVINCE        INPUT-OUTPUT  PIC X(30)   NAME(FLD-STATE)
+                                                  REQUIRED
+
+    ROW 13 COL 2   LITERAL  'POSTAL CODE     : '
+    ROW 13 COL 20  FIELD    POSTAL-CODE           INPUT-OUTPUT  PIC X(10)   NAME(FLD-POSTCD)
+
+    ROW 14 COL 2   LITERAL  'COUNTRY         : '
+    ROW 14 COL 20  FIELD    COUNTRY               INPUT-OUTPUT  PIC X(30)   NAME(FLD-CNTRY)
+                                                  REQUIRED
+
+    ROW 15 COL 2   LITERAL  'PHONE NUMBER    : '
+    ROW 15 COL 20  FIELD    PHONE-NUMBER          INPUT-OUTPUT  PIC X(15)   NAME(FLD-PHONE)
+
+    ROW 16 COL 2   LITERAL  'EMAIL ADDRESS   : '
+    ROW 16 COL 20  FIELD    EMAIL-ADDRESS         INPUT-OUTPUT  PIC X(60)   NAME(FLD-EMAIL)
+
+    ROW 17 COL 2   LITERAL  'STATUS          : '
+    ROW 17 COL 20  FIELD    RECORD-STATUS         INPUT-OUTPUT  PIC X(1)    NAME(FLD-STATUS)
+                                                  DEFAULT 'A'
+
+  MESSAGES:
+    ROW 22 COL 2   FIELD    MSG-TEXT              OUTPUT  PIC X(76)  NAME(FLD-MSG)
+                                                  COLOR(GREEN)
+
+  FOOTER:
+    ROW 23 COL 1   LITERAL  REPEAT '-' 80
+    ROW 24 COL 2   LITERAL  'F1=CREATE  F2=UPDATE  F3=INQUIRE  F4=DEACTIVATE  F12=EXIT'
+
+  PFKEY-ACTIONS:
+    PF1  TRIGGER: TRG-CANDIDATE-CREATE
+    PF2  TRIGGER: TRG-CANDIDATE-UPDATE
+    PF3  TRIGGER: TRG-CANDIDATE-INQUIRE
+    PF4  TRIGGER: TRG-CANDIDATE-DEACTIVATE
+    PF12 RETURN
+
+END-SCREEN-MAP

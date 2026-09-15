@@ -1,0 +1,40 @@
+*================================================================*
+* CA Gen Encyclopedia - Entity Definition
+* Entity  : ISSUED-LICENSE
+* Desc    : The actual driver license issued to a candidate
+*           following successful approval
+*================================================================*
+
+ENTITY: ISSUED-LICENSE
+  IDENTIFIER:
+    LICENSE-ID                   NUMERIC(10)       NOT NULL
+
+  ATTRIBUTES:
+    APPLICATION-ID               NUMERIC(10)       NOT NULL   * FK -> LICENSE-APPLICATION
+    CANDIDATE-ID                 NUMERIC(10)       NOT NULL   * FK -> CANDIDATE
+    LICENSE-NUMBER               CHARACTER(20)     NOT NULL   * System generated unique number
+    LICENSE-TYPE                 CHARACTER(1)      NOT NULL   * L=Learner, P=Probation, O=Open
+    ISSUE-DATE                   DATE              NOT NULL
+    EXPIRY-DATE                  DATE              NOT NULL
+    LICENSE-STATUS               CHARACTER(1)      NOT NULL   * A=Active, S=Suspended,
+                                                              * E=Expired, C=Cancelled, R=Revoked
+    VEHICLE-CLASS                CHARACTER(2)      NOT NULL   * A=Motorcycle, B=Light Vehicle,
+                                                              * C=Heavy Vehicle, D=Bus/Coach
+    RESTRICTIONS                 CHARACTER(200)               * e.g. Corrective Lenses Required
+    DEMERIT-BALANCE              NUMERIC(3)
+    ISSUED-BY-AUTHORITY          CHARACTER(50)     NOT NULL
+    ISSUED-BY-OFFICER            CHARACTER(50)     NOT NULL
+    RENEWAL-COUNT                NUMERIC(3)
+    PREVIOUS-LICENSE-ID          NUMERIC(10)                  * For upgrades/renewals
+    NOTES                        CHARACTER(300)
+
+  RELATIONSHIPS:
+    BELONGS-TO                   LICENSE-APPLICATION
+    BELONGS-TO                   CANDIDATE
+
+  VALIDATION:
+    LICENSE-TYPE IN ('L', 'P', 'O')
+    LICENSE-STATUS IN ('A', 'S', 'E', 'C', 'R')
+    VEHICLE-CLASS IN ('A', 'B', 'C', 'D')
+    EXPIRY-DATE > ISSUE-DATE
+    DEMERIT-BALANCE >= 0

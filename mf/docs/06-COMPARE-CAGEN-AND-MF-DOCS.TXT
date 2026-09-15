@@ -1,0 +1,12 @@
+prompt:
+
+compare documentation in directory docs and directory mf/docs. elaborate on differences - are they describing the same application?
+
+
+Both READMEs share the same system name. Now let me read the remaining docs in both directories to do a deep comparison.
+
+Now let me read the remaining docs from both directories:
+
+I now have a complete picture of both documentation sets. Let me produce a thorough comparison.
+
+reports/dlis-documentation-comparison-docs-vs-mf-docs.html

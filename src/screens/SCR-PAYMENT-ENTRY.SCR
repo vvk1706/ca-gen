@@ -1,0 +1,80 @@
+*================================================================*
+* CA Gen Screen Map Definition
+* Screen  : SCR-PAYMENT-ENTRY
+* Process : PROC-CALCULATE-FEE / PROC-RECORD-PAYMENT / PROC-GENERATE-RECEIPT
+* Desc    : Payment capture and recording screen
+*================================================================*
+
+SCREEN-MAP: SCR-PAYMENT-ENTRY
+  TITLE:    'DRIVER LICENSE SYSTEM - PAYMENT ENTRY'
+  SIZE:     24 ROWS x 80 COLUMNS
+  TYPE:     DATA-ENTRY
+
+  HEADER:
+    ROW 1  COL 1   LITERAL  'DLIS                   PAYMENT ENTRY                   '
+    ROW 1  COL 60  LITERAL  'DATE: '
+    ROW 1  COL 66  FIELD    CURRENT-DATE          OUTPUT  PIC 99/99/9999
+    ROW 2  COL 1   LITERAL  REPEAT '-' 80
+
+  BODY:
+    ROW 4  COL 2   LITERAL  'APPLICATION ID  : '
+    ROW 4  COL 20  FIELD    APPLICATION-ID        INPUT    PIC Z(9)9   NAME(FLD-APP-ID)
+                                                  REQUIRED
+
+    ROW 5  COL 2   LITERAL  'CANDIDATE NAME  : '
+    ROW 5  COL 20  FIELD    CAND-FULL-NAME        OUTPUT   PIC X(60)   NAME(FLD-CAND-NAME)
+
+    ROW 6  COL 2   LITERAL  'LICENSE TYPE    : '
+    ROW 6  COL 20  FIELD    LICENSE-TYPE          OUTPUT   PIC X(1)    NAME(FLD-LIC-TYPE)
+    ROW 6  COL 22  FIELD    LICENSE-TYPE-DESC     OUTPUT   PIC X(20)   NAME(FLD-LIC-DESC)
+
+    ROW 7  COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 8  COL 2   LITERAL  'FEE APPLICABLE  : '
+    ROW 8  COL 20  FIELD    FEE-AMOUNT            OUTPUT   PIC ZZZ,ZZ9.99  NAME(FLD-FEE)
+
+    ROW 9  COL 2   LITERAL  'CURRENCY        : '
+    ROW 9  COL 20  FIELD    CURRENCY-CODE         OUTPUT   PIC X(3)    NAME(FLD-CURR)
+
+    ROW 10 COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 11 COL 2   LITERAL  'PAYMENT METHOD  : '
+    ROW 11 COL 20  FIELD    PAYMENT-METHOD        INPUT    PIC X(2)    NAME(FLD-PAY-METH)
+                                                  REQUIRED
+                                                  VALUES('CC','DC','EF','CS','CH')
+    ROW 11 COL 23  LITERAL  '(CC=Credit DC=Debit EF=EFT CS=Cash CH=Cheque)'
+
+    ROW 12 COL 2   LITERAL  'PAYMENT REF     : '
+    ROW 12 COL 20  FIELD    PAYMENT-REFERENCE     INPUT    PIC X(30)   NAME(FLD-PAY-REF)
+                                                  REQUIRED
+
+    ROW 13 COL 2   LITERAL  'PROCESSED BY    : '
+    ROW 13 COL 20  FIELD    PROCESSED-BY          INPUT    PIC X(20)   NAME(FLD-PROC-BY)
+                                                  REQUIRED
+
+    ROW 14 COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 15 COL 2   LITERAL  'PAYMENT ID      : '
+    ROW 15 COL 20  FIELD    PAYMENT-ID            OUTPUT   PIC Z(9)9   NAME(FLD-PAY-ID)
+
+    ROW 16 COL 2   LITERAL  'RECEIPT NUMBER  : '
+    ROW 16 COL 20  FIELD    RECEIPT-NUMBER        OUTPUT   PIC X(20)   NAME(FLD-RECEIPT)
+
+    ROW 17 COL 2   LITERAL  'PAYMENT STATUS  : '
+    ROW 17 COL 20  FIELD    PAYMENT-STATUS        OUTPUT   PIC X(1)    NAME(FLD-PAY-STAT)
+
+  MESSAGES:
+    ROW 22 COL 2   FIELD    MSG-TEXT              OUTPUT  PIC X(76)  NAME(FLD-MSG)
+                                                  COLOR(GREEN)
+
+  FOOTER:
+    ROW 23 COL 1   LITERAL  REPEAT '-' 80
+    ROW 24 COL 2   LITERAL  'F1=PROCESS PAYMENT  F3=LOOKUP APP  F5=PRINT RECEIPT  F12=EXIT'
+
+  PFKEY-ACTIONS:
+    PF1  TRIGGER: TRG-PAYMENT-PROCESS
+    PF3  TRIGGER: TRG-APPLICATION-LOOKUP
+    PF5  TRIGGER: TRG-RECEIPT-PRINT
+    PF12 RETURN
+
+END-SCREEN-MAP

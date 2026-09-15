@@ -1,0 +1,212 @@
+DRIVER LICENSE ISSUANCE SYSTEM (DLIS) - MAINFRAME PROJECT SUMMARY
+===================================================================
+
+All 36 mainframe artifacts created in mf/ directory across 7 subdirectories.
+
+
+DIRECTORY STRUCTURE
+-------------------
+
+  mf/
+  |-- db2/           3 files  - DB2 DDL (tables, indexes, grants)
+  |-- copybook/      3 files  - COBOL copybooks
+  |-- bms/           5 files  - CICS BMS map source (10 mapsets)
+  |-- cobol/        10 files  - CICS/COBOL programs
+  |-- jcl/           5 files  - JCL batch jobs
+  |-- proc/          2 files  - JCL catalogued procedures
+  |-- csd/           1 file   - CICS CSD resource definitions
+
+
+1. DB2 DDL  (mf/db2/)
+----------------------
+3 files:
+
+  DLIS0001-CREATE-TABLES.sql
+    - 7 tables with PRIMARY KEY, FOREIGN KEY, CHECK constraints
+    - IDENTITY columns for auto-generated surrogate keys
+    - Tables: CANDIDATE, LICENSE_APPLICATION, DRIVING_HISTORY,
+              PAYMENT, ISSUED_LICENSE, AUTHORITY_USER,
+              LICENSE_FEE_SCHEDULE
+
+  DLIS0002-CREATE-INDEXES.sql
+    - 18 indexes covering all primary and common access paths
+    - Unique indexes on primary keys and business keys
+    - Composite indexes on frequently queried column combinations
+
+  DLIS0003-GRANTS.sql
+    - SELECT/INSERT/UPDATE/DELETE on all 7 tables
+    - Granted to DLISAPPL (batch application ID)
+    - Granted to DLISCICS (CICS region user ID)
+
+
+2. COBOL COPYBOOKS  (mf/copybook/)
+------------------------------------
+3 files:
+
+  DLISDCLG.cpy
+    - DCLGEN-style host variable layouts for all 7 entities
+    - Used via COPY in all COBOL programs for DB2 embedded SQL
+
+  DLISWS.cpy
+    - Common working storage shared across all programs:
+        WS-COMMON-AREA     : Return code, message, user ID, date
+        WS-CANDIDATE       : Candidate working fields
+        WS-APPLICATION     : Application working fields
+        WS-PAYMENT         : Payment working fields
+        WS-ELIGIBILITY     : Eligibility check fields + fail reason
+        WS-HISTORY         : History check accumulators
+        WS-APPROVAL        : Approver fields and decision
+        WS-LICENSE         : License issuance fields
+        SQL NULL indicators
+    - Includes EXEC SQL INCLUDE SQLCA
+
+  DLISCSEC.cpy
+    - CICS COMMAREA layouts (DLIS-COMMAREA, DLIS-CAND-COMMAREA,
+      DLIS-APPL-COMMAREA)
+    - CICS RESP1/RESP2 working storage fields
+
+
+3. CICS BMS MAPS  (mf/bms/)
+-----------------------------
+5 source files containing 10 mapsets:
+
+  DLISMM.bms    -> Mapset DLISMM    Map DLISMM01   Main Menu
+  DLISCM.bms    -> Mapset DLISCM    Map DLISCM01   Candidate Maintenance
+  DLISAE.bms    -> Mapset DLISAE    Map DLISAE01   Application Entry
+  DLISECHPE.bms -> Mapset DLISEC    Map DLISEC01   Eligibility Check
+                -> Mapset DLISHC    Map DLISHC01   History Check (7-row scroll)
+                -> Mapset DLISPE    Map DLISPE01   Payment Entry
+  DLISAPPR.bms  -> Mapset DLISA1    Map DLISA1M01  First Authority Approval
+                -> Mapset DLISA2    Map DLISA2M01  Second Authority Approval
+                -> Mapset DLISLI    Map DLISLIM01  License Issue
+                -> Mapset DLISST    Map DLISST01   Application Status Inquiry
+
+  All maps:
+    - 24x80 3270 terminal layout
+    - TIOAPFX=YES for CICS BMS compatibility
+    - LANG=COBOL, MODE=INOUT, CTRL=FREEKB
+
+
+4. CICS/COBOL PROGRAMS  (mf/cobol/)
+-------------------------------------
+10 programs:
+
+  DLISMENU.cbl  Trans DL01  Main menu - routes to all transactions via XCTL
+  DLISCAND.cbl  Trans DL02  Candidate Maintenance
+                              F1=Create  F2=Update  F3=Inquire  F4=Deactivate
+  DLISAPPL.cbl  Trans DL03  License Application Entry
+                              F1=Submit  F3=Lookup Candidate  F5=Calc Fee
+  DLISSTAT.cbl  Trans DL04  Application Status Inquiry - ENTER=Inquire
+  DLISELIG.cbl  Trans DL05  Eligibility Check
+                              F1=Run Check  F3=Lookup App
+                              Age rules: L>=16, P>=17, O>=18
+                              Upgrade path: L->P->O enforced via DB2 query
+  DLISHIST.cbl  Trans DL06  Driving History Check
+                              F1=Run Check  F3=Lookup  F7/F8=Scroll history
+                              DECLARE CURSOR for history scan
+                              Checks: active suspension, demerit>12, unpaid fines
+  DLISPAY.cbl   Trans DL07  Payment Entry and Processing
+                              F1=Process Payment  F3=Lookup  F5=Print Receipt
+                              Receipt number auto-generated
+  DLISAP1.cbl   Trans DL08  First Authority Approval
+                              F1=Submit  F3=Load App  F4=Validate Authority
+                              Validates AUTHORITY_LEVEL=1 and license type auth
+  DLISAP2.cbl   Trans DL09  Second Authority Approval
+                              F1=Submit  F3=Load App  F4=Validate Authority
+                              Enforces different AUTHORITY_NAME from Auth1
+  DLISISSU.cbl  Trans DL10  License Issuance
+                              F1=Issue  F3=Load App  F6=Print License
+                              Re-validates all 5 gates before issue
+                              Calculates expiry: L=+1yr P=+2yr O=+5yr
+                              Generates license number: PREFIX+CLASS+IDs
+
+  All programs follow standard CICS pseudo-conversational pattern:
+    - First entry: SEND MAP ERASE FREEKB
+    - Subsequent: RECEIVE MAP, process, SEND MAP DATAONLY
+    - Return: EXEC CICS RETURN TRANSID COMMAREA
+
+
+5. JCL JOBS  (mf/jcl/)
+------------------------
+5 JCL members:
+
+  DLISDB2.jcl   Run DSNTEP2 to execute DB2 DDL in sequence:
+                  Step 1: DLIS0001 (create tables)
+                  Step 2: DLIS0002 (create indexes)
+                  Step 3: DLIS0003 (grants)
+
+  DLISCOMP.jcl  Invoke DLISCLNK PROC for each of 10 COBOL programs:
+                  DLISMENU DLISCAND DLISAPPL DLISSTAT DLISELIG
+                  DLISHIST DLISPAY  DLISAP1  DLISAP2  DLISISSU
+
+  DLISBMS.jcl   Invoke DLISBASM PROC for each of 10 BMS mapsets:
+                  DLISMM DLISCM DLISAE DLISEC DLISHC DLISPE
+                  DLISA1 DLISA2 DLISLI DLISST
+
+  DLISBIND.jcl  DB2 BIND all 9 DBRM members into package DLISPKG
+                  then BIND PLAN DLISPLAN from DLISPKG.*
+
+  DLISCSD.jcl   Run DFHCSDUP to:
+                  Step 1: Load CSD definitions from DLIS.CSD(DLISCSD)
+                  Step 2: INSTALL GROUP(DLISGRP)
+
+
+6. JCL PROCEDURES  (mf/proc/)
+-------------------------------
+2 catalogued procedures:
+
+  DLISCLNK.proc  3-step COBOL/DB2 compile procedure:
+                   Step PC   : DB2 Precompile (DSNHPC) - extracts DBRM
+                   Step COBOL: COBOL Compile (IGYCRCTL) - RENT,APOST,LIB
+                   Step LKED : Linkedit (IEWL) - RENT,REUS,AMODE(31)
+
+  DLISBASM.proc  3-step BMS assembly procedure:
+                   Step ASM1 : Assemble phase 1 - SYSPARM(MAP) for CICS load
+                   Step ASM2 : Assemble phase 2 - SYSPARM(DSECT) for COBOL copy
+                   Step LKED : Linkedit phase 1 output into load library
+
+
+7. CICS CSD  (mf/csd/)
+------------------------
+1 file - DLISCSD.csd  (DFHCSDUP batch input):
+
+  10 PROGRAM definitions    (DLISMENU through DLISISSU + print stubs)
+  10 MAPSET definitions     (DLISMM DLISCM DLISAE DLISEC DLISHC
+                             DLISPE DLISA1 DLISA2 DLISLI DLISST)
+  10 TRANSACTION definitions (DL01 through DL10)
+   1 DB2ENTRY definition    (DLISDB2E - PLAN=DLISPLAN)
+   1 TRANSLIST definition   (DLISLIST - all 10 transactions)
+  All resources in GROUP: DLISGRP
+
+
+TRANSACTION / PROGRAM / MAP CROSS REFERENCE
+---------------------------------------------
+
+  Trans  Program    Mapset   Map        Screen
+  -----  ---------  -------  ---------  ----------------------------
+  DL01   DLISMENU   DLISMM   DLISMM01   Main Menu
+  DL02   DLISCAND   DLISCM   DLISCM01   Candidate Maintenance
+  DL03   DLISAPPL   DLISAE   DLISAE01   Application Entry
+  DL04   DLISSTAT   DLISST   DLISST01   Application Status Inquiry
+  DL05   DLISELIG   DLISEC   DLISEC01   Eligibility Check
+  DL06   DLISHIST   DLISHC   DLISHC01   Driving History Check
+  DL07   DLISPAY    DLISPE   DLISPE01   Payment Entry
+  DL08   DLISAP1    DLISA1   DLISA1M01  First Authority Approval
+  DL09   DLISAP2    DLISA2   DLISA2M01  Second Authority Approval
+  DL10   DLISISSU   DLISLI   DLISLIM01  License Issuance
+
+
+DATASET NAME CONVENTIONS (z/OS)
+---------------------------------
+
+  DLIS.COBOL       - COBOL source library
+  DLIS.COPYBOOK    - Copybook library (including generated BMS DESCTs)
+  DLIS.BMS         - BMS source library
+  DLIS.DBRM        - DB2 DBRM library (from precompile)
+  DLIS.LOADLIB     - Load module library
+  DLIS.DDL         - DB2 DDL source library
+  DLIS.CSD         - CSD batch input library
+  DLISDB           - DB2 database name
+  DLISGRP          - CICS CSD group name
+  DLISPLAN         - DB2 plan name
+  DLISPKG          - DB2 package collection

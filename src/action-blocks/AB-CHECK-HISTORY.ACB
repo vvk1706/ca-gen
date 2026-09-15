@@ -1,0 +1,125 @@
+*================================================================*
+* CA Gen Action Block
+* Name    : AB-CHECK-HISTORY
+* Process : PROC-RETRIEVE-DRIVING-HISTORY / PROC-CHECK-ACTIVE-SUSPENSION /
+*           PROC-CHECK-DEMERIT-POINTS / PROC-CHECK-UNPAID-FINES /
+*           PROC-RECORD-HISTORY-RESULT
+* Desc    : Reviews candidate's driving history and determines
+*           whether history check passes or fails.
+*           Disqualifiers:
+*             - Active suspension or disqualification
+*             - Total demerit points > 12
+*             - Any unpaid fines
+*================================================================*
+
+ACTION-BLOCK: AB-CHECK-HISTORY
+  IMPORTS:
+    WS-APPLICATION-ID            NUMERIC(10)
+    WS-CHECKED-BY                CHARACTER(20)
+
+  EXPORTS:
+    WS-HISTORY-STATUS            CHARACTER(1)     * P=Pass, F=Fail
+    WS-RETURN-CODE               NUMERIC(4)
+    WS-RETURN-MSG                CHARACTER(100)
+
+  LOCAL-VIEWS:
+    LV-APPLICATION               VAPPLICATION-ALL
+    LV-HISTORY                   VHISTORY-CHECK
+    LV-APP-UPDATE                VAPPLICATION-HISTORY-UPD
+
+  LOCAL-WORK-AREAS:
+    WA-TOTAL-DEMERIT             NUMERIC(5)
+    WA-FAIL-FLAG                 CHARACTER(1)
+    WA-FAIL-REASON               CHARACTER(200)
+    WA-TODAY                     DATE
+
+  ACTION-DIAGRAM:
+    MOVE 0 TO WS-RETURN-CODE
+    MOVE SPACES TO WS-RETURN-MSG
+    MOVE 'N' TO WA-FAIL-FLAG
+    MOVE 0 TO WA-TOTAL-DEMERIT
+    MOVE SPACES TO WA-FAIL-REASON
+    MOVE CURRENT-DATE TO WA-TODAY
+
+    * ------- Read application -------
+    READ LV-APPLICATION
+      WHERE LV-APPLICATION.APPLICATION-ID = WS-APPLICATION-ID
+      WHEN NONE
+        MOVE 1 TO WS-RETURN-CODE
+        MOVE 'APPLICATION NOT FOUND' TO WS-RETURN-MSG
+        ESCAPE
+    END-READ
+
+    * ------- Check eligibility was passed first -------
+    IF LV-APPLICATION.ELIGIBILITY-CHECK-STATUS <> 'P'
+      MOVE 2 TO WS-RETURN-CODE
+      MOVE 'ELIGIBILITY CHECK MUST BE PASSED BEFORE HISTORY CHECK' TO WS-RETURN-MSG
+      ESCAPE
+    END-IF
+
+    * ------- Scan driving history records -------
+    READ EACH LV-HISTORY
+      WHERE LV-HISTORY.CANDIDATE-ID  = LV-APPLICATION.CANDIDATE-ID
+      AND   LV-HISTORY.RECORD-STATUS = 'A'
+
+      * Check for active suspension or disqualification
+      IF LV-HISTORY.INCIDENT-TYPE IN ('SU', 'DQ')
+        IF LV-HISTORY.SUSPENSION-END-DATE IS NULL
+          OR LV-HISTORY.SUSPENSION-END-DATE >= WA-TODAY
+          MOVE 'Y' TO WA-FAIL-FLAG
+          MOVE 'CANDIDATE IS UNDER AN ACTIVE SUSPENSION OR DISQUALIFICATION'
+            TO WA-FAIL-REASON
+        END-IF
+      END-IF
+
+      * Accumulate demerit points
+      ADD LV-HISTORY.DEMERIT-POINTS TO WA-TOTAL-DEMERIT
+
+      * Check for unpaid fines
+      IF LV-HISTORY.FINE-AMOUNT > 0
+        IF LV-HISTORY.FINE-PAID-STATUS = 'N'
+          IF WA-FAIL-FLAG = 'N'
+            MOVE 'Y' TO WA-FAIL-FLAG
+            MOVE 'CANDIDATE HAS OUTSTANDING UNPAID FINES' TO WA-FAIL-REASON
+          END-IF
+        END-IF
+      END-IF
+
+    END-READ
+
+    * ------- Demerit points threshold check -------
+    IF WA-TOTAL-DEMERIT > 12
+      MOVE 'Y' TO WA-FAIL-FLAG
+      MOVE 'TOTAL DEMERIT POINTS EXCEED ALLOWABLE THRESHOLD OF 12' TO WA-FAIL-REASON
+    END-IF
+
+    * ------- Set status -------
+    IF WA-FAIL-FLAG = 'Y'
+      MOVE 'F' TO WS-HISTORY-STATUS
+    ELSE
+      MOVE 'P' TO WS-HISTORY-STATUS
+    END-IF
+
+    * ------- Update application -------
+    CHANGE LV-APP-UPDATE
+      WHERE LV-APP-UPDATE.APPLICATION-ID = WS-APPLICATION-ID
+        MOVE WS-HISTORY-STATUS    TO LV-APP-UPDATE.HISTORY-CHECK-STATUS
+        MOVE CURRENT-DATE         TO LV-APP-UPDATE.HISTORY-CHECK-DATE
+        MOVE WA-FAIL-REASON       TO LV-APP-UPDATE.HISTORY-CHECK-NOTES
+        IF WS-HISTORY-STATUS = 'P'
+          MOVE 'HC' TO LV-APP-UPDATE.APPLICATION-STATUS
+        ELSE
+          MOVE 'RE' TO LV-APP-UPDATE.APPLICATION-STATUS
+        END-IF
+        MOVE CURRENT-DATE         TO LV-APP-UPDATE.LAST-UPDATED-DATE
+        MOVE WS-CHECKED-BY        TO LV-APP-UPDATE.LAST-UPDATED-BY
+    END-CHANGE
+
+    MOVE 0 TO WS-RETURN-CODE
+    IF WS-HISTORY-STATUS = 'P'
+      MOVE 'HISTORY CHECK PASSED' TO WS-RETURN-MSG
+    ELSE
+      MOVE WA-FAIL-REASON TO WS-RETURN-MSG
+    END-IF
+
+END-ACTION-BLOCK

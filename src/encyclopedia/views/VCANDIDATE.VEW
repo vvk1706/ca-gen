@@ -1,0 +1,60 @@
+*================================================================*
+* CA Gen Encyclopedia - Views Definition
+* Subject : CANDIDATE entity views
+*================================================================*
+
+*----------------------------------------------------------------*
+* VIEW: VCANDIDATE-ALL
+* Desc : Full view of candidate - used in maintenance screens
+*----------------------------------------------------------------*
+VIEW: VCANDIDATE-ALL OF CANDIDATE
+  CANDIDATE-ID
+  FIRST-NAME
+  LAST-NAME
+  DATE-OF-BIRTH
+  ID-NUMBER
+  ADDRESS-LINE-1
+  ADDRESS-LINE-2
+  CITY
+  STATE-PROVINCE
+  POSTAL-CODE
+  COUNTRY
+  PHONE-NUMBER
+  EMAIL-ADDRESS
+  CREATED-DATE
+  RECORD-STATUS
+
+*----------------------------------------------------------------*
+* VIEW: VCANDIDATE-SUMMARY
+* Desc : Summary view for lookup/display on other screens
+*----------------------------------------------------------------*
+VIEW: VCANDIDATE-SUMMARY OF CANDIDATE
+  CANDIDATE-ID
+  FIRST-NAME
+  LAST-NAME
+  DATE-OF-BIRTH
+  ID-NUMBER
+  PHONE-NUMBER
+  EMAIL-ADDRESS
+  RECORD-STATUS
+
+*----------------------------------------------------------------*
+* VIEW: VCANDIDATE-ID-LOOKUP
+* Desc : Used to look up candidate by national ID number
+*----------------------------------------------------------------*
+VIEW: VCANDIDATE-ID-LOOKUP OF CANDIDATE
+  CANDIDATE-ID
+  ID-NUMBER
+  FIRST-NAME
+  LAST-NAME
+  DATE-OF-BIRTH
+  RECORD-STATUS
+
+*----------------------------------------------------------------*
+* VIEW: VCANDIDATE-ELIGIBILITY
+* Desc : Minimal view used during eligibility check
+*----------------------------------------------------------------*
+VIEW: VCANDIDATE-ELIGIBILITY OF CANDIDATE
+  CANDIDATE-ID
+  DATE-OF-BIRTH
+  RECORD-STATUS

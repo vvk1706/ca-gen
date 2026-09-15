@@ -1,0 +1,61 @@
+*================================================================*
+* CA Gen Encyclopedia - Views Definition
+* Subject : AUTHORITY-USER and LICENSE-FEE-SCHEDULE views
+*================================================================*
+
+*----------------------------------------------------------------*
+* VIEW: VAUTHORITY-ALL
+* Desc : Full authority user view for maintenance
+*----------------------------------------------------------------*
+VIEW: VAUTHORITY-ALL OF AUTHORITY-USER
+  AUTHORITY-USER-ID
+  USER-CODE
+  USER-NAME
+  AUTHORITY-NAME
+  AUTHORITY-LEVEL
+  DEPARTMENT
+  PHONE-NUMBER
+  EMAIL-ADDRESS
+  ACTIVE-STATUS
+  LICENSE-TYPES-AUTHORISED
+
+*----------------------------------------------------------------*
+* VIEW: VAUTHORITY-LOOKUP
+* Desc : Used during approval to validate approver
+*----------------------------------------------------------------*
+VIEW: VAUTHORITY-LOOKUP OF AUTHORITY-USER
+  AUTHORITY-USER-ID
+  USER-CODE
+  USER-NAME
+  AUTHORITY-NAME
+  AUTHORITY-LEVEL
+  ACTIVE-STATUS
+  LICENSE-TYPES-AUTHORISED
+
+*----------------------------------------------------------------*
+* VIEW: VFEE-SCHEDULE-ALL
+* Desc : Full fee schedule view
+*----------------------------------------------------------------*
+VIEW: VFEE-SCHEDULE-ALL OF LICENSE-FEE-SCHEDULE
+  FEE-SCHEDULE-ID
+  LICENSE-TYPE
+  FEE-TYPE
+  FEE-AMOUNT
+  EFFECTIVE-DATE
+  EXPIRY-DATE
+  CURRENCY-CODE
+  DESCRIPTION
+  ACTIVE-STATUS
+
+*----------------------------------------------------------------*
+* VIEW: VFEE-LOOKUP
+* Desc : Used during payment to retrieve applicable fee amount
+*----------------------------------------------------------------*
+VIEW: VFEE-LOOKUP OF LICENSE-FEE-SCHEDULE
+  LICENSE-TYPE
+  FEE-TYPE
+  FEE-AMOUNT
+  CURRENCY-CODE
+  EFFECTIVE-DATE
+  EXPIRY-DATE
+  ACTIVE-STATUS

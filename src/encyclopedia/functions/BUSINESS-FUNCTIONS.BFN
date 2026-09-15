@@ -1,0 +1,145 @@
+*================================================================*
+* CA Gen Encyclopedia - Business Function Decomposition
+* System  : DRIVER LICENSE ISSUANCE SYSTEM (DLIS)
+*================================================================*
+
+BUSINESS-AREA: DRIVER-LICENSE-ISSUANCE-SYSTEM
+
+  *------------------------------------------------------------*
+  * FUNCTION 1: CANDIDATE MANAGEMENT
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-CANDIDATE-MANAGEMENT
+    DESCRIPTION: Manage candidate registration and maintenance
+    PROCESS: PROC-CREATE-CANDIDATE
+      DESCRIPTION: Register a new license candidate in the system
+    PROCESS: PROC-MAINTAIN-CANDIDATE
+      DESCRIPTION: Update existing candidate details
+    PROCESS: PROC-INQUIRE-CANDIDATE
+      DESCRIPTION: Inquire candidate details by ID or national number
+    PROCESS: PROC-DEACTIVATE-CANDIDATE
+      DESCRIPTION: Deactivate a candidate record
+
+  *------------------------------------------------------------*
+  * FUNCTION 2: LICENSE APPLICATION
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-LICENSE-APPLICATION
+    DESCRIPTION: Capture and manage driver license applications
+    PROCESS: PROC-CREATE-APPLICATION
+      DESCRIPTION: Create a new license application for a candidate
+                   Candidate selects license type: L, P or O
+    PROCESS: PROC-INQUIRE-APPLICATION
+      DESCRIPTION: Inquire application status and details
+    PROCESS: PROC-CANCEL-APPLICATION
+      DESCRIPTION: Cancel a pending application
+
+  *------------------------------------------------------------*
+  * FUNCTION 3: ELIGIBILITY CHECKING
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-ELIGIBILITY-CHECK
+    DESCRIPTION: Verify candidate meets age and eligibility criteria
+    PROCESS: PROC-CHECK-AGE-ELIGIBILITY
+      DESCRIPTION: Validate minimum age requirements per license type
+                   Learner >= 16, Probation >= 17, Open >= 18
+    PROCESS: PROC-CHECK-ID-VALIDITY
+      DESCRIPTION: Validate national ID number format and existence
+    PROCESS: PROC-CHECK-EXISTING-LICENSE
+      DESCRIPTION: Check if candidate already holds a license
+                   Enforce correct upgrade path: L -> P -> O
+    PROCESS: PROC-RECORD-ELIGIBILITY-RESULT
+      DESCRIPTION: Record eligibility check result on application
+
+  *------------------------------------------------------------*
+  * FUNCTION 4: HISTORY CHECKING
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-HISTORY-CHECK
+    DESCRIPTION: Review candidate's driving history for disqualifiers
+    PROCESS: PROC-RETRIEVE-DRIVING-HISTORY
+      DESCRIPTION: Read all active history records for candidate
+    PROCESS: PROC-CHECK-ACTIVE-SUSPENSION
+      DESCRIPTION: Determine if candidate is under active suspension
+    PROCESS: PROC-CHECK-DEMERIT-POINTS
+      DESCRIPTION: Tally total demerit points vs allowed threshold
+    PROCESS: PROC-CHECK-UNPAID-FINES
+      DESCRIPTION: Identify unpaid fines that block application
+    PROCESS: PROC-RECORD-HISTORY-RESULT
+      DESCRIPTION: Record history check result on application
+
+  *------------------------------------------------------------*
+  * FUNCTION 5: PAYMENT PROCESSING
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-PAYMENT-PROCESSING
+    DESCRIPTION: Handle fee calculation and payment recording
+    PROCESS: PROC-CALCULATE-FEE
+      DESCRIPTION: Look up applicable fee from fee schedule for
+                   the selected license type and fee type
+    PROCESS: PROC-RECORD-PAYMENT
+      DESCRIPTION: Record payment details against the application
+    PROCESS: PROC-VERIFY-PAYMENT
+      DESCRIPTION: Verify payment reference and confirm status
+    PROCESS: PROC-GENERATE-RECEIPT
+      DESCRIPTION: Generate payment receipt for candidate
+
+  *------------------------------------------------------------*
+  * FUNCTION 6: FIRST AUTHORITY APPROVAL
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-APPROVAL-AUTHORITY-1
+    DESCRIPTION: First level authority review and approval
+    PROCESS: PROC-RETRIEVE-PENDING-AUTH1
+      DESCRIPTION: Retrieve applications pending first approval
+    PROCESS: PROC-VALIDATE-AUTHORITY1-USER
+      DESCRIPTION: Validate that approving officer is authorised
+                   for level-1 approval of the requested license type
+    PROCESS: PROC-RECORD-APPROVAL1
+      DESCRIPTION: Record first authority approval or rejection decision
+    PROCESS: PROC-NOTIFY-REJECTION-AUTH1
+      DESCRIPTION: Generate rejection notification if auth1 rejected
+
+  *------------------------------------------------------------*
+  * FUNCTION 7: SECOND AUTHORITY APPROVAL
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-APPROVAL-AUTHORITY-2
+    DESCRIPTION: Second level authority review and approval
+    PROCESS: PROC-RETRIEVE-PENDING-AUTH2
+      DESCRIPTION: Retrieve applications pending second approval
+    PROCESS: PROC-VALIDATE-AUTHORITY2-USER
+      DESCRIPTION: Validate that approving officer is authorised
+                   for level-2 approval and is a different person
+                   from the first approver
+    PROCESS: PROC-RECORD-APPROVAL2
+      DESCRIPTION: Record second authority approval or rejection decision
+    PROCESS: PROC-NOTIFY-REJECTION-AUTH2
+      DESCRIPTION: Generate rejection notification if auth2 rejected
+
+  *------------------------------------------------------------*
+  * FUNCTION 8: LICENSE ISSUANCE
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-LICENSE-ISSUANCE
+    DESCRIPTION: Generate and issue the driver license
+    PROCESS: PROC-VALIDATE-READY-FOR-ISSUE
+      DESCRIPTION: Confirm all checks and approvals are satisfied
+                   before issuing license
+    PROCESS: PROC-GENERATE-LICENSE-NUMBER
+      DESCRIPTION: Generate unique license number
+    PROCESS: PROC-SET-LICENSE-EXPIRY
+      DESCRIPTION: Calculate expiry date based on license type:
+                   Learner = 1 year, Probation = 2 years, Open = 5 years
+    PROCESS: PROC-CREATE-ISSUED-LICENSE
+      DESCRIPTION: Create the ISSUED-LICENSE record
+    PROCESS: PROC-UPDATE-APPLICATION-ISSUED
+      DESCRIPTION: Update application status to IS=Issued
+    PROCESS: PROC-PRINT-LICENSE
+      DESCRIPTION: Trigger output of physical license card
+
+  *------------------------------------------------------------*
+  * FUNCTION 9: LICENSE INQUIRY AND MAINTENANCE
+  *------------------------------------------------------------*
+  BUSINESS-FUNCTION: BF-LICENSE-INQUIRY
+    DESCRIPTION: Inquire and maintain issued licenses
+    PROCESS: PROC-INQUIRE-LICENSE
+      DESCRIPTION: Inquire an issued license by license number
+    PROCESS: PROC-SUSPEND-LICENSE
+      DESCRIPTION: Suspend an active license
+    PROCESS: PROC-REVOKE-LICENSE
+      DESCRIPTION: Revoke a license (permanent)
+    PROCESS: PROC-INQUIRE-APPLICATION-STATUS
+      DESCRIPTION: End-to-end status inquiry for an application

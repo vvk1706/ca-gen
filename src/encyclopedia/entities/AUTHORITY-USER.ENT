@@ -1,0 +1,28 @@
+*================================================================*
+* CA Gen Encyclopedia - Entity Definition
+* Entity  : AUTHORITY-USER
+* Desc    : Represents an authorised officer/authority who can
+*           perform approvals in the license issuance workflow
+*================================================================*
+
+ENTITY: AUTHORITY-USER
+  IDENTIFIER:
+    AUTHORITY-USER-ID            NUMERIC(10)       NOT NULL
+
+  ATTRIBUTES:
+    USER-CODE                    CHARACTER(20)     NOT NULL
+    USER-NAME                    CHARACTER(60)     NOT NULL
+    AUTHORITY-NAME               CHARACTER(50)     NOT NULL   * e.g. Traffic Dept, DMV
+    AUTHORITY-LEVEL              CHARACTER(1)      NOT NULL   * 1=First Approver, 2=Second Approver
+    DEPARTMENT                   CHARACTER(50)
+    PHONE-NUMBER                 CHARACTER(15)
+    EMAIL-ADDRESS                CHARACTER(60)
+    ACTIVE-STATUS                CHARACTER(1)      NOT NULL   * A=Active, I=Inactive
+    LICENSE-TYPES-AUTHORISED     CHARACTER(3)                 * L/P/O or combinations e.g. LPO
+
+  RELATIONSHIPS:
+    PERFORMS-ZERO-OR-MORE        LICENSE-APPLICATION          * via approval fields
+
+  VALIDATION:
+    AUTHORITY-LEVEL IN ('1', '2')
+    ACTIVE-STATUS IN ('A', 'I')

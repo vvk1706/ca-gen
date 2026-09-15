@@ -1,0 +1,134 @@
+DRIVER LICENSE ISSUANCE SYSTEM (DLIS) - PROJECT DOCUMENTATION SUMMARY
+=======================================================================
+
+8 documentation files created in docs/ folder.
+
+
+FILE LISTING
+------------
+
+  docs/README.md
+  docs/01-ARCHITECTURE.md
+  docs/02-WORKFLOW.md
+  docs/03-SCREEN-NAVIGATION.md
+  docs/04-ACTION-BLOCK-REFERENCE.md
+  docs/05-BUSINESS-RULES.md
+  docs/06-DATA-DICTIONARY.md
+  docs/07-DEPLOYMENT-GUIDE.md
+
+
+DOCUMENT DETAILS
+----------------
+
+1. docs/README.md
+   Content : Index, quick-start summary, project structure tree,
+             license type table (L/P/O)
+   Diagrams: None (index document)
+
+2. docs/01-ARCHITECTURE.md
+   Content : CA Gen three-layer stack (Presentation / Logic / Data),
+             generator target overview, view layer architecture,
+             security and segregation of duties summary
+   Diagrams:
+     - CA Gen Layer Stack (ASCII art)
+     - Entity-Relationship Diagram (Mermaid erDiagram)
+     - Application Status State Machine (Mermaid stateDiagram)
+     - Action Block Call Chain (Mermaid flowchart)
+
+3. docs/02-WORKFLOW.md
+   Content : End-to-end process overview, application status lifecycle
+             table, eligibility check logic, history check logic,
+             dual approval sequencing, payment process flow,
+             license expiry calculation rules, license number format
+   Diagrams:
+     - End-to-End Process Flow (Mermaid flowchart - full pipeline)
+     - Eligibility Check Logic (Mermaid flowchart)
+     - History Check Logic (Mermaid flowchart)
+     - Dual Approval Sequence Diagram (Mermaid sequenceDiagram)
+     - Payment Process Flow (Mermaid flowchart)
+
+4. docs/03-SCREEN-NAVIGATION.md
+   Content : Screen inventory table (10 screens), PF-key reference
+             for every screen, field descriptions, screen layout
+             conventions (row/column standards)
+   Diagrams:
+     - Screen Navigation Flow (Mermaid flowchart)
+
+5. docs/04-ACTION-BLOCK-REFERENCE.md
+   Content : Full reference for all 9 action blocks:
+               AB-CREATE-CANDIDATE
+               AB-CREATE-APPLICATION
+               AB-CHECK-ELIGIBILITY
+               AB-CHECK-HISTORY
+               AB-PROCESS-PAYMENT
+               AB-RECORD-APPROVAL-1
+               AB-RECORD-APPROVAL-2
+               AB-ISSUE-LICENSE
+               AB-INQUIRE-APPLICATION-STATUS
+             Each entry includes: Imports table, Exports table,
+             Return code meanings, Logic summary
+   Diagrams: None (reference tables)
+
+6. docs/05-BUSINESS-RULES.md
+   Content : 29 numbered business rules across 9 categories:
+               License Type Rules     (BR-01 to BR-06)
+               Candidate Rules        (BR-07 to BR-09)
+               History Check Rules    (BR-10 to BR-12)
+               Sequential Gate Rules  (BR-13 to BR-17)
+               Approval Rules         (BR-18 to BR-21)
+               Payment Rules          (BR-22 to BR-23)
+               License Issuance Rules (BR-24 to BR-26)
+               Data Integrity Rules   (BR-27 to BR-29)
+             Each rule includes: description, enforcing action block,
+             error message text
+             Full summary matrix: BR# / Area / Enforced By / Type
+   Diagrams: None (rules catalogue)
+
+7. docs/06-DATA-DICTIONARY.md
+   Content : Full data dictionary for all 7 entities:
+               CANDIDATE
+               LICENSE-APPLICATION
+               DRIVING-HISTORY
+               PAYMENT
+               ISSUED-LICENSE
+               AUTHORITY-USER
+               LICENSE-FEE-SCHEDULE
+             Each entity: attribute / type / nullable / description /
+             valid values. Entity relationships listed.
+             Reference code tables:
+               Application Status Codes
+               License Type Codes
+               Vehicle Class Codes
+               Incident Type Codes
+               Payment Method Codes
+   Diagrams: None (data dictionary)
+
+8. docs/07-DEPLOYMENT-GUIDE.md
+   Content : Prerequisites (CA Gen toolset + mainframe + distributed),
+             Encyclopedia load order (6 steps),
+             CA Gen generation steps (DDL, CICS, JCL compile),
+             CICS transaction ID to program mapping (10 transactions),
+             Reference data setup SQL (authority users, fee schedule),
+             Security roles (7 roles with screen assignments),
+             Segregation of duties controls,
+             Testing checklist:
+               - Happy path test (Learner license)
+               - Negative test cases (9 scenarios)
+             Artifact file reference table
+   Diagrams: None (operational guide)
+
+
+DIAGRAMS SUMMARY
+----------------
+
+Total Mermaid diagrams embedded across documentation: 9
+
+  01-ARCHITECTURE.md : Entity-Relationship Diagram (erDiagram)
+  01-ARCHITECTURE.md : Application Status State Machine (stateDiagram-v2)
+  01-ARCHITECTURE.md : Action Block Call Chain (flowchart TD)
+  02-WORKFLOW.md     : End-to-End Process Flow (flowchart TD)
+  02-WORKFLOW.md     : Eligibility Check Logic (flowchart TD)
+  02-WORKFLOW.md     : History Check Logic (flowchart TD)
+  02-WORKFLOW.md     : Dual Approval Sequence Diagram (sequenceDiagram)
+  02-WORKFLOW.md     : Payment Process Flow (flowchart LR)
+  03-SCREEN-NAVIGATION.md : Screen Navigation Flow (flowchart TD)

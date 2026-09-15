@@ -1,0 +1,27 @@
+*================================================================*
+* CA Gen Encyclopedia - Entity Definition
+* Entity  : LICENSE-FEE-SCHEDULE
+* Desc    : Fee schedule table defining amounts payable per
+*           license type and fee type
+*================================================================*
+
+ENTITY: LICENSE-FEE-SCHEDULE
+  IDENTIFIER:
+    FEE-SCHEDULE-ID              NUMERIC(10)       NOT NULL
+
+  ATTRIBUTES:
+    LICENSE-TYPE                 CHARACTER(1)      NOT NULL   * L=Learner, P=Probation, O=Open
+    FEE-TYPE                     CHARACTER(2)      NOT NULL   * IF=Issue Fee, RF=Renewal Fee,
+                                                              * LF=Late Fee, PF=Processing Fee
+    FEE-AMOUNT                   NUMERIC(10,2)     NOT NULL
+    EFFECTIVE-DATE               DATE              NOT NULL
+    EXPIRY-DATE                  DATE
+    CURRENCY-CODE                CHARACTER(3)      NOT NULL   * e.g. USD, AUD, ZAR
+    DESCRIPTION                  CHARACTER(200)
+    ACTIVE-STATUS                CHARACTER(1)      NOT NULL   * A=Active, I=Inactive
+
+  VALIDATION:
+    LICENSE-TYPE IN ('L', 'P', 'O')
+    FEE-TYPE IN ('IF', 'RF', 'LF', 'PF')
+    FEE-AMOUNT > 0
+    ACTIVE-STATUS IN ('A', 'I')

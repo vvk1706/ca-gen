@@ -1,0 +1,35 @@
+*================================================================*
+* CA Gen Encyclopedia - Entity Definition
+* Entity  : DRIVING-HISTORY
+* Desc    : Records of candidate's prior driving offences,
+*           suspensions, accidents and demerit points
+*================================================================*
+
+ENTITY: DRIVING-HISTORY
+  IDENTIFIER:
+    HISTORY-ID                   NUMERIC(10)       NOT NULL
+
+  ATTRIBUTES:
+    CANDIDATE-ID                 NUMERIC(10)       NOT NULL   * FK -> CANDIDATE
+    INCIDENT-DATE                DATE              NOT NULL
+    INCIDENT-TYPE                CHARACTER(2)      NOT NULL   * OF=Offence, AC=Accident,
+                                                              * SU=Suspension, DQ=Disqualification
+    INCIDENT-DESCRIPTION         CHARACTER(300)
+    DEMERIT-POINTS               NUMERIC(3)
+    FINE-AMOUNT                  NUMERIC(10,2)
+    FINE-PAID-STATUS             CHARACTER(1)                 * Y=Yes, N=No
+    SUSPENSION-START-DATE        DATE
+    SUSPENSION-END-DATE          DATE
+    COURT-CASE-NUMBER            CHARACTER(20)
+    RECORDED-BY-AUTHORITY        CHARACTER(50)
+    RECORD-STATUS                CHARACTER(1)      NOT NULL   * A=Active, I=Inactive
+
+  RELATIONSHIPS:
+    BELONGS-TO                   CANDIDATE
+
+  VALIDATION:
+    INCIDENT-TYPE IN ('OF', 'AC', 'SU', 'DQ')
+    FINE-PAID-STATUS IN ('Y', 'N')
+    RECORD-STATUS IN ('A', 'I')
+    DEMERIT-POINTS >= 0
+    FINE-AMOUNT >= 0

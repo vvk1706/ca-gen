@@ -1,0 +1,67 @@
+*================================================================*
+* CA Gen Encyclopedia - Views Definition
+* Subject : PAYMENT entity views
+*================================================================*
+
+*----------------------------------------------------------------*
+* VIEW: VPAYMENT-ALL
+* Desc : Full payment view for inquiry
+*----------------------------------------------------------------*
+VIEW: VPAYMENT-ALL OF PAYMENT
+  PAYMENT-ID
+  APPLICATION-ID
+  CANDIDATE-ID
+  PAYMENT-DATE
+  PAYMENT-AMOUNT
+  PAYMENT-METHOD
+  PAYMENT-REFERENCE
+  PAYMENT-STATUS
+  LICENSE-TYPE
+  FEE-TYPE
+  RECEIPT-NUMBER
+  PROCESSED-BY
+  NOTES
+
+*----------------------------------------------------------------*
+* VIEW: VPAYMENT-CREATE
+* Desc : View for recording a new payment
+*----------------------------------------------------------------*
+VIEW: VPAYMENT-CREATE OF PAYMENT
+  APPLICATION-ID
+  CANDIDATE-ID
+  PAYMENT-DATE
+  PAYMENT-AMOUNT
+  PAYMENT-METHOD
+  PAYMENT-REFERENCE
+  PAYMENT-STATUS
+  LICENSE-TYPE
+  FEE-TYPE
+  PROCESSED-BY
+
+*----------------------------------------------------------------*
+* VIEW: VPAYMENT-STATUS
+* Desc : Quick status lookup for payment against application
+*----------------------------------------------------------------*
+VIEW: VPAYMENT-STATUS OF PAYMENT
+  PAYMENT-ID
+  APPLICATION-ID
+  PAYMENT-STATUS
+  RECEIPT-NUMBER
+  PAYMENT-DATE
+  PAYMENT-AMOUNT
+
+*----------------------------------------------------------------*
+* VIEW: VPAYMENT-RECEIPT
+* Desc : View used to generate receipt output
+*----------------------------------------------------------------*
+VIEW: VPAYMENT-RECEIPT OF PAYMENT
+  PAYMENT-ID
+  APPLICATION-ID
+  CANDIDATE-ID
+  RECEIPT-NUMBER
+  PAYMENT-DATE
+  PAYMENT-AMOUNT
+  PAYMENT-METHOD
+  FEE-TYPE
+  LICENSE-TYPE
+  PAYMENT-STATUS

@@ -1,0 +1,90 @@
+*================================================================*
+* CA Gen Screen Map Definition
+* Screen  : SCR-LICENSE-ISSUE
+* Process : PROC-VALIDATE-READY-FOR-ISSUE / PROC-CREATE-ISSUED-LICENSE
+* Desc    : Final license issuance screen - officer confirms and issues
+*================================================================*
+
+SCREEN-MAP: SCR-LICENSE-ISSUE
+  TITLE:    'DRIVER LICENSE SYSTEM - LICENSE ISSUANCE'
+  SIZE:     24 ROWS x 80 COLUMNS
+  TYPE:     DATA-ENTRY
+
+  HEADER:
+    ROW 1  COL 1   LITERAL  'DLIS                  LICENSE ISSUANCE                 '
+    ROW 1  COL 60  LITERAL  'DATE: '
+    ROW 1  COL 66  FIELD    CURRENT-DATE          OUTPUT  PIC 99/99/9999
+    ROW 2  COL 1   LITERAL  REPEAT '-' 80
+
+  BODY:
+    ROW 4  COL 2   LITERAL  'APPLICATION ID  : '
+    ROW 4  COL 20  FIELD    APPLICATION-ID        INPUT    PIC Z(9)9   NAME(FLD-APP-ID)
+                                                  REQUIRED
+
+    ROW 5  COL 2   LITERAL  'CANDIDATE NAME  : '
+    ROW 5  COL 20  FIELD    CAND-FULL-NAME        OUTPUT   PIC X(60)   NAME(FLD-CAND-NAME)
+
+    ROW 6  COL 2   LITERAL  'LICENSE TYPE    : '
+    ROW 6  COL 20  FIELD    LICENSE-TYPE          OUTPUT   PIC X(1)    NAME(FLD-LIC-TYPE)
+    ROW 6  COL 22  FIELD    LICENSE-TYPE-DESC     OUTPUT   PIC X(20)   NAME(FLD-LIC-DESC)
+
+    ROW 7  COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 8  COL 2   LITERAL  'APPROVAL STATUS :'
+    ROW 9  COL 4   LITERAL  'ELIGIBILITY     : '
+    ROW 9  COL 22  FIELD    ELIG-STATUS           OUTPUT   PIC X(6)    NAME(FLD-ELIG)
+
+    ROW 10 COL 4   LITERAL  'HISTORY         : '
+    ROW 10 COL 22  FIELD    HIST-STATUS           OUTPUT   PIC X(6)    NAME(FLD-HIST)
+
+    ROW 11 COL 4   LITERAL  'PAYMENT         : '
+    ROW 11 COL 22  FIELD    PAYMENT-STATUS        OUTPUT   PIC X(6)    NAME(FLD-PAY)
+
+    ROW 12 COL 4   LITERAL  'FIRST AUTH      : '
+    ROW 12 COL 22  FIELD    APPROVAL-1-STATUS     OUTPUT   PIC X(6)    NAME(FLD-AUTH1)
+
+    ROW 13 COL 4   LITERAL  'SECOND AUTH     : '
+    ROW 13 COL 22  FIELD    APPROVAL-2-STATUS     OUTPUT   PIC X(6)    NAME(FLD-AUTH2)
+
+    ROW 14 COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 15 COL 2   LITERAL  'VEHICLE CLASS   : '
+    ROW 15 COL 20  FIELD    VEHICLE-CLASS         INPUT    PIC X(2)    NAME(FLD-VEH-CLASS)
+                                                  REQUIRED
+                                                  VALUES('A','B','C','D')
+    ROW 15 COL 23  LITERAL  '(A=Motorcycle B=Light C=Heavy D=Bus)'
+
+    ROW 16 COL 2   LITERAL  'RESTRICTIONS    : '
+    ROW 16 COL 20  FIELD    RESTRICTIONS          INPUT    PIC X(60)   NAME(FLD-RESTRICT)
+
+    ROW 17 COL 2   LITERAL  'ISSUING OFFICER : '
+    ROW 17 COL 20  FIELD    ISSUED-BY-OFFICER     INPUT    PIC X(50)   NAME(FLD-OFFICER)
+                                                  REQUIRED
+
+    ROW 18 COL 2   LITERAL  'ISSUING AUTH    : '
+    ROW 18 COL 20  FIELD    ISSUED-BY-AUTHORITY   INPUT    PIC X(50)   NAME(FLD-AUTHORITY)
+                                                  REQUIRED
+
+    ROW 19 COL 1   LITERAL  REPEAT '-' 80
+
+    ROW 20 COL 2   LITERAL  'LICENSE NUMBER  : '
+    ROW 20 COL 20  FIELD    LICENSE-NUMBER        OUTPUT   PIC X(20)   NAME(FLD-LIC-NUM)
+
+    ROW 21 COL 2   LITERAL  'EXPIRY DATE     : '
+    ROW 21 COL 20  FIELD    EXPIRY-DATE           OUTPUT   PIC 99/99/9999 NAME(FLD-EXPIRY)
+
+  MESSAGES:
+    ROW 22 COL 2   FIELD    MSG-TEXT              OUTPUT  PIC X(76)  NAME(FLD-MSG)
+                                                  COLOR(GREEN)
+
+  FOOTER:
+    ROW 23 COL 1   LITERAL  REPEAT '-' 80
+    ROW 24 COL 2   LITERAL  'F1=ISSUE LICENSE  F3=LOAD APP  F6=PRINT LICENSE  F12=EXIT'
+
+  PFKEY-ACTIONS:
+    PF1  TRIGGER: TRG-LICENSE-ISSUE
+    PF3  TRIGGER: TRG-APPLICATION-LOOKUP
+    PF6  TRIGGER: TRG-LICENSE-PRINT
+    PF12 RETURN
+
+END-SCREEN-MAP

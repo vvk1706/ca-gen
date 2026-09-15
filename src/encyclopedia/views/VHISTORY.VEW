@@ -1,0 +1,51 @@
+*================================================================*
+* CA Gen Encyclopedia - Views Definition
+* Subject : DRIVING-HISTORY entity views
+*================================================================*
+
+*----------------------------------------------------------------*
+* VIEW: VHISTORY-ALL
+* Desc : Full driving history view
+*----------------------------------------------------------------*
+VIEW: VHISTORY-ALL OF DRIVING-HISTORY
+  HISTORY-ID
+  CANDIDATE-ID
+  INCIDENT-DATE
+  INCIDENT-TYPE
+  INCIDENT-DESCRIPTION
+  DEMERIT-POINTS
+  FINE-AMOUNT
+  FINE-PAID-STATUS
+  SUSPENSION-START-DATE
+  SUSPENSION-END-DATE
+  COURT-CASE-NUMBER
+  RECORDED-BY-AUTHORITY
+  RECORD-STATUS
+
+*----------------------------------------------------------------*
+* VIEW: VHISTORY-CHECK
+* Desc : View used during automated history check
+*         returns active adverse records for a candidate
+*----------------------------------------------------------------*
+VIEW: VHISTORY-CHECK OF DRIVING-HISTORY
+  CANDIDATE-ID
+  INCIDENT-TYPE
+  INCIDENT-DATE
+  DEMERIT-POINTS
+  FINE-PAID-STATUS
+  SUSPENSION-START-DATE
+  SUSPENSION-END-DATE
+  RECORD-STATUS
+
+*----------------------------------------------------------------*
+* VIEW: VHISTORY-SUMMARY
+* Desc : Display summary of history records
+*----------------------------------------------------------------*
+VIEW: VHISTORY-SUMMARY OF DRIVING-HISTORY
+  HISTORY-ID
+  CANDIDATE-ID
+  INCIDENT-DATE
+  INCIDENT-TYPE
+  INCIDENT-DESCRIPTION
+  DEMERIT-POINTS
+  RECORD-STATUS

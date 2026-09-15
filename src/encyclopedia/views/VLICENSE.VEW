@@ -1,0 +1,67 @@
+*================================================================*
+* CA Gen Encyclopedia - Views Definition
+* Subject : ISSUED-LICENSE entity views
+*================================================================*
+
+*----------------------------------------------------------------*
+* VIEW: VLICENSE-ALL
+* Desc : Full issued license view
+*----------------------------------------------------------------*
+VIEW: VLICENSE-ALL OF ISSUED-LICENSE
+  LICENSE-ID
+  APPLICATION-ID
+  CANDIDATE-ID
+  LICENSE-NUMBER
+  LICENSE-TYPE
+  ISSUE-DATE
+  EXPIRY-DATE
+  LICENSE-STATUS
+  VEHICLE-CLASS
+  RESTRICTIONS
+  DEMERIT-BALANCE
+  ISSUED-BY-AUTHORITY
+  ISSUED-BY-OFFICER
+  RENEWAL-COUNT
+  PREVIOUS-LICENSE-ID
+  NOTES
+
+*----------------------------------------------------------------*
+* VIEW: VLICENSE-CREATE
+* Desc : View for generating a new license record
+*----------------------------------------------------------------*
+VIEW: VLICENSE-CREATE OF ISSUED-LICENSE
+  APPLICATION-ID
+  CANDIDATE-ID
+  LICENSE-NUMBER
+  LICENSE-TYPE
+  ISSUE-DATE
+  EXPIRY-DATE
+  LICENSE-STATUS
+  VEHICLE-CLASS
+  RESTRICTIONS
+  DEMERIT-BALANCE
+  ISSUED-BY-AUTHORITY
+  ISSUED-BY-OFFICER
+
+*----------------------------------------------------------------*
+* VIEW: VLICENSE-SUMMARY
+* Desc : Summary display of active license
+*----------------------------------------------------------------*
+VIEW: VLICENSE-SUMMARY OF ISSUED-LICENSE
+  LICENSE-ID
+  LICENSE-NUMBER
+  LICENSE-TYPE
+  ISSUE-DATE
+  EXPIRY-DATE
+  LICENSE-STATUS
+  VEHICLE-CLASS
+  DEMERIT-BALANCE
+
+*----------------------------------------------------------------*
+* VIEW: VLICENSE-STATUS-UPD
+* Desc : Used to update license status (suspend/revoke/cancel)
+*----------------------------------------------------------------*
+VIEW: VLICENSE-STATUS-UPD OF ISSUED-LICENSE
+  LICENSE-ID
+  LICENSE-STATUS
+  NOTES

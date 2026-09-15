@@ -1,0 +1,81 @@
+*================================================================*
+* CA Gen Action Block
+* Name    : AB-CREATE-APPLICATION
+* Process : PROC-CREATE-APPLICATION
+* Desc    : Create a new driver license application for a candidate
+*           Candidate selects license type: L=Learner P=Probation O=Open
+*================================================================*
+
+ACTION-BLOCK: AB-CREATE-APPLICATION
+  IMPORTS:
+    WS-CANDIDATE-ID              NUMERIC(10)
+    WS-LICENSE-TYPE              CHARACTER(1)     * L, P, O
+    WS-CREATED-BY                CHARACTER(20)
+
+  EXPORTS:
+    WS-APPLICATION-ID            NUMERIC(10)
+    WS-RETURN-CODE               NUMERIC(4)       * 0=OK, 1=Invalid Candidate, 2=Invalid LicType,
+                                                  * 3=Application Already Pending, 99=Error
+    WS-RETURN-MSG                CHARACTER(100)
+
+  LOCAL-VIEWS:
+    LV-CANDIDATE                 VCANDIDATE-ELIGIBILITY
+    LV-APP-EXISTING              VAPPLICATION-STATUS
+    LV-APP-NEW                   VAPPLICATION-CREATE
+
+  ACTION-DIAGRAM:
+    MOVE 0 TO WS-RETURN-CODE
+    MOVE SPACES TO WS-RETURN-MSG
+
+    * ------- Validate candidate exists and is active -------
+    READ LV-CANDIDATE
+      WHERE LV-CANDIDATE.CANDIDATE-ID = WS-CANDIDATE-ID
+      WHEN NONE
+        MOVE 1 TO WS-RETURN-CODE
+        MOVE 'CANDIDATE NOT FOUND OR INACTIVE' TO WS-RETURN-MSG
+        ESCAPE
+    END-READ
+
+    IF LV-CANDIDATE.RECORD-STATUS <> 'A'
+      MOVE 1 TO WS-RETURN-CODE
+      MOVE 'CANDIDATE RECORD IS INACTIVE' TO WS-RETURN-MSG
+      ESCAPE
+    END-IF
+
+    * ------- Validate license type -------
+    IF WS-LICENSE-TYPE NOT IN ('L', 'P', 'O')
+      MOVE 2 TO WS-RETURN-CODE
+      MOVE 'INVALID LICENSE TYPE. MUST BE L, P OR O' TO WS-RETURN-MSG
+      ESCAPE
+    END-IF
+
+    * ------- Check no application is already pending for this candidate/type -------
+    READ EACH LV-APP-EXISTING
+      WHERE LV-APP-EXISTING.CANDIDATE-ID  = WS-CANDIDATE-ID
+      AND   LV-APP-EXISTING.LICENSE-TYPE  = WS-LICENSE-TYPE
+      AND   LV-APP-EXISTING.APPLICATION-STATUS NOT IN ('RE', 'IS')
+      IMPORT LV-APP-EXISTING
+        MOVE 3 TO WS-RETURN-CODE
+        MOVE 'AN ACTIVE APPLICATION ALREADY EXISTS FOR THIS LICENSE TYPE' TO WS-RETURN-MSG
+        ESCAPE
+      END-IMPORT
+    END-READ
+
+    IF WS-RETURN-CODE <> 0
+      ESCAPE
+    END-IF
+
+    * ------- Create the application -------
+    CREATE LV-APP-NEW
+      MOVE WS-CANDIDATE-ID   TO LV-APP-NEW.CANDIDATE-ID
+      MOVE WS-LICENSE-TYPE   TO LV-APP-NEW.LICENSE-TYPE
+      MOVE CURRENT-DATE      TO LV-APP-NEW.APPLICATION-DATE
+      MOVE 'PE'              TO LV-APP-NEW.APPLICATION-STATUS    * PE=Pending
+      MOVE WS-CREATED-BY     TO LV-APP-NEW.CREATED-BY
+    END-CREATE
+
+    MOVE LV-APP-NEW.APPLICATION-ID TO WS-APPLICATION-ID
+    MOVE 0 TO WS-RETURN-CODE
+    MOVE 'APPLICATION CREATED SUCCESSFULLY' TO WS-RETURN-MSG
+
+END-ACTION-BLOCK
