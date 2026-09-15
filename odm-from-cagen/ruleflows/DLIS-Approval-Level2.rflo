@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Ruleflow: DLIS-Approval-Level2
+  Converted from CA Gen Action Block: AB-RECORD-APPROVAL-2
+
+  Business Rules executed:
+    BR-16  First approval must be granted before second (gate guard)
+    BR-18  Approver must be active (ACTIVE-STATUS = "A")
+    BR-19  Approver must have AUTHORITY-LEVEL = "2"
+    BR-20  Approver must be authorised for the application's license type
+    BR-21  Second approver must be from a different authority than first approver
+
+  Decision outcomes:
+    Approve (A) → application.approval2Status = "A", applicationStatus = "AP"
+    Reject  (R) → application.approval2Status = "R", applicationStatus = "RE"
+-->
+<ruleflow
+    name="DLIS-Approval-Level2"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/ruleflow/1.0"
+    package="com.dlis.odm.ruleflows">
+
+  <description>
+    Records the second authority approval or rejection decision.
+    Enforces segregation of duties — approver must differ from Level 1.
+    Converted from AB-RECORD-APPROVAL-2.ACB.
+  </description>
+
+  <startNode name="Start" outLink="link-validate-decision-value-2"/>
+
+  <ruleTaskNode name="ValidateDecisionValue"
+                rulesetRef="approval/validate-decision-value"
+                inLink="link-validate-decision-value-2"
+                outLink="link-check-approval1-gate"/>
+
+  <!-- Gate guard: first approval must be granted (BR-16) -->
+  <ruleTaskNode name="CheckApproval1Gate"
+                rulesetRef="approval/check-approval1-gate"
+                inLink="link-check-approval1-gate"
+                outLink="link-validate-authority-user-2"/>
+
+  <!-- Authority user validation: active, level-2, license type auth (BR-18, BR-19, BR-20) -->
+  <ruleTaskNode name="ValidateAuthorityUser2"
+                rulesetRef="approval/validate-authority-user-level2"
+                inLink="link-validate-authority-user-2"
+                outLink="link-check-different-authority"/>
+
+  <!-- Segregation of duties: different authority from level 1 (BR-21) -->
+  <ruleTaskNode name="CheckDifferentAuthority"
+                rulesetRef="approval/check-different-authority"
+                inLink="link-check-different-authority"
+                outLink="link-approval2-validation-gateway"/>
+
+  <decisionNode name="Approval2ValidationGateway"
+                inLink="link-approval2-validation-gateway">
+    <outLink name="link-approval2-violations" condition="context.hasViolations()"/>
+    <outLink name="link-approval2-valid"      condition="!context.hasViolations()"/>
+  </decisionNode>
+
+  <ruleTaskNode name="RecordApproval2Decision"
+                rulesetRef="approval/record-approval2-decision"
+                inLink="link-approval2-valid"
+                outLink="link-approval2-done"/>
+
+  <endNode name="Approval2Violation" inLink="link-approval2-violations">
+    <action>
+      context.returnCode = 3;
+    </action>
+  </endNode>
+
+  <endNode name="Done" inLink="link-approval2-done"/>
+
+</ruleflow>

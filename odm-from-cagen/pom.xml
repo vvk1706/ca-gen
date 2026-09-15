@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.dlis.odm</groupId>
+  <artifactId>dlis-odm-parent</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+  <name>DLIS ODM — Parent POM</name>
+  <description>
+    Driver License Issuance System — IBM ODM implementation.
+    Converted from CA Gen DLIS application.
+  </description>
+
+  <modules>
+    <module>bom</module>
+    <module>service</module>
+  </modules>
+
+  <properties>
+    <java.version>11</java.version>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- IBM ODM version — update to match your installation -->
+    <odm.version>8.10.5</odm.version>
+
+    <!-- IBM CICS TG version — update to match your installation -->
+    <cics.tg.version>9.3.0</cics.tg.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <!-- IBM ODM Rule Execution Server client -->
+      <dependency>
+        <groupId>com.ibm.rules</groupId>
+        <artifactId>jrules-engine</artifactId>
+        <version>${odm.version}</version>
+        <scope>provided</scope>
+        <!-- Available in IBM ODM local Maven repository after installation -->
+      </dependency>
+
+      <!-- IBM CICS Transaction Gateway (EXCI) -->
+      <dependency>
+        <groupId>com.ibm.ctg</groupId>
+        <artifactId>ctgclient</artifactId>
+        <version>${cics.tg.version}</version>
+        <scope>provided</scope>
+        <!-- Provided by CICS TG installation: $CTG_HOME/lib/ctgclient.jar -->
+      </dependency>
+
+      <!-- IBM CICS for Java (JCICS) — for EXEC CICS LINK -->
+      <dependency>
+        <groupId>com.ibm.cics</groupId>
+        <artifactId>com.ibm.cics.server</artifactId>
+        <version>1.400.0</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- JAX-RS -->
+      <dependency>
+        <groupId>javax.ws.rs</groupId>
+        <artifactId>javax.ws.rs-api</artifactId>
+        <version>2.1.1</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- JSON binding -->
+      <dependency>
+        <groupId>javax.json.bind</groupId>
+        <artifactId>javax.json.bind-api</artifactId>
+        <version>1.0</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- JUnit 5 for rule unit tests -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.10.0</version>
+        <scope>test</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+</project>

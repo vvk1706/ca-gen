@@ -1,0 +1,77 @@
+<!--
+  ODM Decision Table: License Age and Validity Rules
+  Converted from: Business Rules BR-02, BR-03, BR-04, BR-24
+  Package: com.dlis.odm.rules.eligibility
+  Ruleset: eligibility/license-age-validity-table
+
+  This table replaces the individual IF-THEN age checks in AB-CHECK-ELIGIBILITY
+  and the expiry calculations in AB-ISSUE-LICENSE with a single manageable table
+  that business users can maintain in Decision Center without developer involvement.
+
+  Columns:
+    License Type  | Min Age | Validity (Years) | Prefix | Error Message (Age)
+    ------------  | ------- | ---------------- | ------ | ---------------------
+    L             | 16      | 1                | LRN    | CANDIDATE MUST BE AT LEAST 16 YEARS OLD FOR LEARNER LICENSE
+    P             | 17      | 2                | PRB    | CANDIDATE MUST BE AT LEAST 17 YEARS OLD FOR PROBATION LICENSE
+    O             | 18      | 5                | OPN    | CANDIDATE MUST BE AT LEAST 18 YEARS OLD FOR OPEN LICENSE
+-->
+<DecisionTable
+    name="LicenseAgeAndValidityTable"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/dt/1.0"
+    package="com.dlis.odm.rules.eligibility"
+    ruleflow-group="license-age-validity">
+
+  <Description>
+    Lookup table for minimum age requirements and license validity periods.
+    Replaces CA Gen IF-THEN chains in AB-CHECK-ELIGIBILITY and AB-ISSUE-LICENSE.
+    Maintainable by business users in Decision Center.
+  </Description>
+
+  <!-- Condition columns -->
+  <ConditionColumn id="col-license-type"
+                   label="License Type"
+                   expression="the licenseType of the application of context"/>
+
+  <!-- Action columns -->
+  <ActionColumn id="col-min-age"
+                label="Minimum Age"
+                expression="set the minimumRequiredAge of context to {0}"/>
+
+  <ActionColumn id="col-validity-years"
+                label="Validity (Years)"
+                expression="set the licenseValidityYears of context to {0}"/>
+
+  <ActionColumn id="col-license-prefix"
+                label="License Number Prefix"
+                expression="set the licensePrefix of context to {0}"/>
+
+  <ActionColumn id="col-age-error"
+                label="Age Error Message"
+                expression="set the ageErrorMessage of context to {0}"/>
+
+  <!-- Data rows -->
+  <Row id="row-learner">
+    <Condition col="col-license-type" value="&quot;L&quot;"/>
+    <Action col="col-min-age"          value="16"/>
+    <Action col="col-validity-years"   value="1"/>
+    <Action col="col-license-prefix"   value="&quot;LRN&quot;"/>
+    <Action col="col-age-error"        value="&quot;CANDIDATE MUST BE AT LEAST 16 YEARS OLD FOR LEARNER LICENSE&quot;"/>
+  </Row>
+
+  <Row id="row-probation">
+    <Condition col="col-license-type" value="&quot;P&quot;"/>
+    <Action col="col-min-age"          value="17"/>
+    <Action col="col-validity-years"   value="2"/>
+    <Action col="col-license-prefix"   value="&quot;PRB&quot;"/>
+    <Action col="col-age-error"        value="&quot;CANDIDATE MUST BE AT LEAST 17 YEARS OLD FOR PROBATION LICENSE&quot;"/>
+  </Row>
+
+  <Row id="row-open">
+    <Condition col="col-license-type" value="&quot;O&quot;"/>
+    <Action col="col-min-age"          value="18"/>
+    <Action col="col-validity-years"   value="5"/>
+    <Action col="col-license-prefix"   value="&quot;OPN&quot;"/>
+    <Action col="col-age-error"        value="&quot;CANDIDATE MUST BE AT LEAST 18 YEARS OLD FOR OPEN LICENSE&quot;"/>
+  </Row>
+
+</DecisionTable>

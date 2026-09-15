@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Ruleflow: DLIS-License-Issuance
+  Converted from CA Gen Action Block: AB-ISSUE-LICENSE
+
+  Business Rules executed:
+    BR-17  All 5 gates must be passed before issuance (final safety guard)
+    BR-24  Expiry dates: L=1yr, P=2yr, O=5yr
+    BR-25  Vehicle class must be A, B, C, or D
+    BR-26  Starting demerit balance = 12
+    BR-29  Expiry date must be after issue date
+
+  Transactional write (ISSUED-LICENSE record creation, APPLICATION status update)
+  is performed via the CICS adapter (DLIS-LICENSE-ADAPTER) after rules succeed.
+-->
+<ruleflow
+    name="DLIS-License-Issuance"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/ruleflow/1.0"
+    package="com.dlis.odm.ruleflows">
+
+  <description>
+    Issues the driver license after final validation of all gates.
+    Calculates expiry date and generates license number.
+    Transactional DB2 writes performed via CICS adapter post-rules.
+    Converted from AB-ISSUE-LICENSE.ACB.
+  </description>
+
+  <startNode name="Start" outLink="link-validate-vehicle-class"/>
+
+  <!-- Validate vehicle class (BR-25) -->
+  <ruleTaskNode name="ValidateVehicleClass"
+                rulesetRef="issuance/validate-vehicle-class"
+                inLink="link-validate-vehicle-class"
+                outLink="link-recheck-all-gates"/>
+
+  <!-- Final re-verification of all 5 gates (BR-17) -->
+  <ruleTaskNode name="RecheckAllGates"
+                rulesetRef="issuance/recheck-all-gates"
+                inLink="link-recheck-all-gates"
+                outLink="link-issuance-guard-gateway"/>
+
+  <decisionNode name="IssuanceGuardGateway"
+                inLink="link-issuance-guard-gateway">
+    <outLink name="link-issuance-violations" condition="context.hasViolations()"/>
+    <outLink name="link-issuance-valid"      condition="!context.hasViolations()"/>
+  </decisionNode>
+
+  <!-- Calculate expiry date (BR-24) -->
+  <ruleTaskNode name="CalculateExpiryDate"
+                rulesetRef="issuance/calculate-expiry-date"
+                inLink="link-issuance-valid"
+                outLink="link-generate-license-number"/>
+
+  <!-- Generate license number per format: {PREFIX}{CLASS}{CANDIDATE-ID}{APP-ID} -->
+  <ruleTaskNode name="GenerateLicenseNumber"
+                rulesetRef="issuance/generate-license-number"
+                inLink="link-generate-license-number"
+                outLink="link-set-demerit-balance"/>
+
+  <!-- Set starting demerit balance = 12 (BR-26) -->
+  <ruleTaskNode name="SetDemeritBalance"
+                rulesetRef="issuance/set-demerit-balance"
+                inLink="link-set-demerit-balance"
+                outLink="link-issuance-done"/>
+
+  <endNode name="IssuanceViolation" inLink="link-issuance-violations">
+    <action>
+      context.returnCode = 2;
+    </action>
+  </endNode>
+
+  <endNode name="Done" inLink="link-issuance-done"/>
+
+</ruleflow>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Rule Project Descriptor
+  Project: dlis-rules
+  Package: com.dlis.odm
+
+  Import this file into IBM Rule Designer:
+    File → Import → Operational Decision Manager → Rule Project
+-->
+<ruleProject
+    name="dlis-rules"
+    version="1.0.0"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/project/1.0">
+
+  <description>
+    DLIS Driver License Issuance System — IBM ODM Rule Project.
+    Converted from CA Gen DLIS application.
+    All 29 business rules (BR-01 to BR-29) implemented as BAL rules
+    organised into 6 rule packages.
+  </description>
+
+  <!-- BOM dependency -->
+  <dependency>
+    <project>dlis-bom</project>
+    <version>1.0.0</version>
+  </dependency>
+
+  <!-- Rule packages -->
+  <rulePackage path="rules/candidate"   name="candidate"/>
+  <rulePackage path="rules/eligibility" name="eligibility"/>
+  <rulePackage path="rules/history"     name="history"/>
+  <rulePackage path="rules/payment"     name="payment"/>
+  <rulePackage path="rules/approval"    name="approval"/>
+  <rulePackage path="rules/issuance"    name="issuance"/>
+
+  <!-- Decision tables -->
+  <decisionTable path="decision-tables/LicenseAgeAndValidityTable.dtt"/>
+  <decisionTable path="decision-tables/LicenseUpgradePathTable.dtt"/>
+
+  <!-- Ruleflows -->
+  <ruleflow path="ruleflows/DLIS-Main-Workflow.rflo"/>
+  <ruleflow path="ruleflows/DLIS-Eligibility-Check.rflo"/>
+  <ruleflow path="ruleflows/DLIS-History-Check.rflo"/>
+  <ruleflow path="ruleflows/DLIS-Payment-Processing.rflo"/>
+  <ruleflow path="ruleflows/DLIS-Approval-Level1.rflo"/>
+  <ruleflow path="ruleflows/DLIS-Approval-Level2.rflo"/>
+  <ruleflow path="ruleflows/DLIS-License-Issuance.rflo"/>
+
+  <!-- Ruleset definitions -->
+  <ruleset name="DLIS-EligibilityRuleset">
+    <ruleflow ref="DLIS-Eligibility-Check"/>
+    <rulePackageRef ref="eligibility"/>
+  </ruleset>
+
+  <ruleset name="DLIS-HistoryRuleset">
+    <ruleflow ref="DLIS-History-Check"/>
+    <rulePackageRef ref="history"/>
+  </ruleset>
+
+  <ruleset name="DLIS-PaymentRuleset">
+    <ruleflow ref="DLIS-Payment-Processing"/>
+    <rulePackageRef ref="payment"/>
+  </ruleset>
+
+  <ruleset name="DLIS-Approval1Ruleset">
+    <ruleflow ref="DLIS-Approval-Level1"/>
+    <rulePackageRef ref="approval"/>
+  </ruleset>
+
+  <ruleset name="DLIS-Approval2Ruleset">
+    <ruleflow ref="DLIS-Approval-Level2"/>
+    <rulePackageRef ref="approval"/>
+  </ruleset>
+
+  <ruleset name="DLIS-IssuanceRuleset">
+    <ruleflow ref="DLIS-License-Issuance"/>
+    <rulePackageRef ref="issuance"/>
+  </ruleset>
+
+  <ruleset name="DLIS-CandidateRuleset">
+    <rulePackageRef ref="candidate"/>
+  </ruleset>
+
+</ruleProject>

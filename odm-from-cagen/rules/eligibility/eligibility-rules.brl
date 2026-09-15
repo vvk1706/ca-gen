@@ -1,0 +1,188 @@
+/*
+ * ODM BAL Rules — Eligibility Check Package
+ * Ruleset: eligibility
+ * Converted from: AB-CHECK-ELIGIBILITY.ACB
+ *
+ * Rules: BR-01, BR-02, BR-03, BR-04, BR-05, BR-06
+ *        + helper rules for age computation and result recording
+ */
+package com.dlis.odm.rules.eligibility;
+
+// ────────────────────────────────────────────────────────────────────────────
+// COMPUTE-CANDIDATE-AGE
+// Helper: calculates candidateAge in years and stores in context.
+// Called before any age-based rules to ensure a single canonical age value.
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "COMPUTE-001 Calculate Candidate Age"
+    priority: 100
+    when
+        context is a RuleContext
+        context.candidate is not null
+        context.candidateAge == 0
+    then
+        set context.candidateAge to
+            the number of complete years between context.candidate.dateOfBirth and context.today ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-01 — License Type Validation
+// CA Gen source: AB-CREATE-APPLICATION line 46–49
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-01 License Type Must Be L P Or O"
+    priority: 90
+    when
+        context is a RuleContext
+        the licenseType of the application of context is not "L"
+        and the licenseType of the application of context is not "P"
+        and the licenseType of the application of context is not "O"
+    then
+        add a new RuleViolation(
+            "BR-01",
+            "INVALID LICENSE TYPE. MUST BE L, P OR O",
+            "ERROR",
+            "licenseType"
+        ) to the violations of context ;
+        set the returnCode of context to 6 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-02 — Minimum Age: Learner License (16 years)
+// CA Gen source: AB-CHECK-ELIGIBILITY.ACB lines 63–69
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-02 Learner Minimum Age 16"
+    priority: 80
+    when
+        context is a RuleContext
+        the licenseType of the application of context is "L"
+        the candidateAge of context < 16
+    then
+        add a new RuleViolation(
+            "BR-02",
+            "CANDIDATE MUST BE AT LEAST 16 YEARS OLD FOR LEARNER LICENSE",
+            "ERROR",
+            "dateOfBirth"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-03 — Minimum Age: Probation License (17 years)
+// CA Gen source: AB-CHECK-ELIGIBILITY.ACB lines 71–77
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-03 Probation Minimum Age 17"
+    priority: 80
+    when
+        context is a RuleContext
+        the licenseType of the application of context is "P"
+        the candidateAge of context < 17
+    then
+        add a new RuleViolation(
+            "BR-03",
+            "CANDIDATE MUST BE AT LEAST 17 YEARS OLD FOR PROBATION LICENSE",
+            "ERROR",
+            "dateOfBirth"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-04 — Minimum Age: Open License (18 years)
+// CA Gen source: AB-CHECK-ELIGIBILITY.ACB lines 79–86
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-04 Open Minimum Age 18"
+    priority: 80
+    when
+        context is a RuleContext
+        the licenseType of the application of context is "O"
+        the candidateAge of context < 18
+    then
+        add a new RuleViolation(
+            "BR-04",
+            "CANDIDATE MUST BE AT LEAST 18 YEARS OLD FOR OPEN LICENSE",
+            "ERROR",
+            "dateOfBirth"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-05 — Upgrade Path: Probation requires active Learner license
+// CA Gen source: AB-CHECK-ELIGIBILITY.ACB lines 89–108
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-05 Probation Requires Active Learner License"
+    priority: 70
+    when
+        context is a RuleContext
+        the licenseType of the application of context is "P"
+        context has no violations
+        there is no IssuedLicense issuedLicense in the existingLicenses of context
+            such that
+                the licenseType of issuedLicense is "L"
+                and the licenseStatus of issuedLicense is "A"
+    then
+        add a new RuleViolation(
+            "BR-05",
+            "CANDIDATE MUST HOLD AN ACTIVE LEARNER LICENSE TO APPLY FOR PROBATION",
+            "ERROR",
+            "licenseType"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-06 — Upgrade Path: Open requires active Probation license
+// CA Gen source: AB-CHECK-ELIGIBILITY.ACB lines 89–108
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-06 Open Requires Active Probation License"
+    priority: 70
+    when
+        context is a RuleContext
+        the licenseType of the application of context is "O"
+        context has no violations
+        there is no IssuedLicense issuedLicense in the existingLicenses of context
+            such that
+                the licenseType of issuedLicense is "P"
+                and the licenseStatus of issuedLicense is "A"
+    then
+        add a new RuleViolation(
+            "BR-06",
+            "CANDIDATE MUST HOLD AN ACTIVE PROBATION LICENSE TO APPLY FOR OPEN",
+            "ERROR",
+            "licenseType"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// RECORD-ELIGIBILITY-PASS
+// CA Gen source: AB-CHECK-ELIGIBILITY.ACB lines 123–130
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "ELIG-REC-001 Record Eligibility Pass"
+    agenda-group: "record-result"
+    priority: 50
+    when
+        context is a RuleContext
+        context has no violations
+    then
+        set the eligibilityCheckStatus of the application of context to "P" ;
+        set the eligibilityCheckDate of the application of context to context.today ;
+        set the applicationStatus of the application of context to "EC" ;
+        set the returnCode of context to 0 ;
+        set the returnMessage of context to "ELIGIBILITY CHECK PASSED" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// RECORD-ELIGIBILITY-FAIL
+// CA Gen source: AB-CHECK-ELIGIBILITY.ACB lines 112–117
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "ELIG-REC-002 Record Eligibility Fail"
+    agenda-group: "record-result"
+    priority: 50
+    when
+        context is a RuleContext
+        context has violations
+    then
+        set the eligibilityCheckStatus of the application of context to "F" ;
+        set the eligibilityCheckDate of the application of context to context.today ;
+        set the eligibilityCheckNotes of the application of context
+            to the message of the first violation of context ;
+        set the applicationStatus of the application of context to "RE" ;
+        set the returnCode of context to 1 ;
+        set the returnMessage of context
+            to the message of the first violation of context ;

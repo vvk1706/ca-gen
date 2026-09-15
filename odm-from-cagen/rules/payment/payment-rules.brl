@@ -1,0 +1,107 @@
+/*
+ * ODM BAL Rules — Payment Processing Package
+ * Ruleset: payment
+ * Converted from: AB-PROCESS-PAYMENT.ACB
+ *
+ * Rules: BR-14, BR-22, BR-23, BR-28
+ */
+package com.dlis.odm.rules.payment;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-14 — History Gate Guard
+// Payment cannot proceed unless history check was passed.
+// CA Gen source: AB-PROCESS-PAYMENT.ACB lines 49–54
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-14 History Must Be Passed Before Payment"
+    priority: 100
+    when
+        context is a RuleContext
+        the historyCheckStatus of the application of context is not "P"
+    then
+        set the returnCode of context to 4 ;
+        set the returnMessage of context to
+            "HISTORY CHECK MUST BE PASSED BEFORE PAYMENT" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-22 — No Duplicate Payment
+// CA Gen source: AB-PROCESS-PAYMENT.ACB lines 56–60
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-22 No Duplicate Payment"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the paymentStatus of the application of context is "P"
+    then
+        add a new RuleViolation(
+            "BR-22",
+            "PAYMENT HAS ALREADY BEEN RECORDED FOR THIS APPLICATION",
+            "ERROR"
+        ) to the violations of context ;
+        set the returnCode of context to 3 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-23 — Active Fee Schedule Required
+// CA Gen source: AB-PROCESS-PAYMENT.ACB lines 63–74
+// The applicable fee schedule is pre-loaded by the service layer (CICS adapter).
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-23 Active Fee Schedule Must Exist"
+    priority: 80
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the applicableFeeSchedule of context is null
+    then
+        add a new RuleViolation(
+            "BR-23",
+            "NO ACTIVE FEE SCHEDULE FOUND FOR THIS LICENSE TYPE",
+            "ERROR"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-28 — Fee Amount Must Be Positive
+// CA Gen source: entity attribute validation + fee schedule lookup
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-28 Fee Amount Must Be Positive"
+    priority: 75
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the applicableFeeSchedule of context is not null
+        the feeAmount of the applicableFeeSchedule of context <= 0
+    then
+        add a new RuleViolation(
+            "BR-28",
+            "FEE AMOUNT IN THE SCHEDULE MUST BE GREATER THAN ZERO",
+            "ERROR",
+            "feeAmount"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// GENERATE-RECEIPT-AND-APPROVE
+// Computes receipt number and marks application as payment approved.
+// CA Gen source: AB-PROCESS-PAYMENT.ACB lines 78–109
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "PAY-001 Generate Receipt Number And Mark Payment Approved"
+    agenda-group: "record-result"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+    then
+        set the generatedReceiptNumber of context to
+            "RCP" + context.today + context.application.applicationId ;
+        set the paymentStatus of the application of context to "P" ;
+        set the paymentReference of the application of context
+            to the paymentReference of context ;
+        set the applicationStatus of the application of context to "PA" ;
+        set the returnCode of context to 0 ;
+        set the returnMessage of context to "PAYMENT RECORDED SUCCESSFULLY" ;

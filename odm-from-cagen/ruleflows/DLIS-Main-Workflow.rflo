@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Ruleflow: DLIS-Main-Workflow
+  Converted from CA Gen DLIS sequential gate pipeline.
+
+  Mirrors the 8-step workflow defined in docs/02-WORKFLOW.md:
+    Step 1: Register Candidate     (pre-condition: handled by REST layer / CICS)
+    Step 2: Create Application     (pre-condition: candidate active)
+    Step 3: Eligibility Check      (AB-CHECK-ELIGIBILITY → ODM Ruleset)
+    Step 4: History Check          (AB-CHECK-HISTORY     → ODM Ruleset)
+    Step 5: Process Payment        (AB-PROCESS-PAYMENT   → ODM Ruleset + CICS)
+    Step 6: First Approval         (AB-RECORD-APPROVAL-1 → ODM Ruleset)
+    Step 7: Second Approval        (AB-RECORD-APPROVAL-2 → ODM Ruleset)
+    Step 8: Issue License          (AB-ISSUE-LICENSE     → ODM Ruleset + CICS)
+
+  Each gate in this ruleflow calls a sub-ruleflow.
+  A gate failure sets applicationStatus = "RE" and halts the flow.
+-->
+<ruleflow
+    name="DLIS-Main-Workflow"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/ruleflow/1.0"
+    package="com.dlis.odm.ruleflows">
+
+  <description>
+    Top-level workflow for the Driver License Issuance System.
+    Orchestrates the 8-stage sequential gate pipeline.
+    Each sub-flow reads and writes the RuleContext fact object.
+  </description>
+
+  <!-- ── Entry point ──────────────────────────────────────────── -->
+  <startNode name="Start" outLink="link-to-eligibility-check"/>
+
+  <!-- ── Gate 1: Eligibility Check ───────────────────────────── -->
+  <subFlowNode name="EligibilityCheck"
+               ruleflowRef="DLIS-Eligibility-Check"
+               inLink="link-to-eligibility-check"
+               outLink="link-eligibility-gateway"/>
+
+  <decisionNode name="EligibilityGateway"
+                inLink="link-eligibility-gateway">
+    <outLink name="link-eligibility-pass"
+             condition="context.application.eligibilityCheckStatus == &quot;P&quot;"/>
+    <outLink name="link-eligibility-fail"
+             condition="context.application.eligibilityCheckStatus == &quot;F&quot;"/>
+  </decisionNode>
+
+  <!-- ── Gate 2: History Check ────────────────────────────────── -->
+  <subFlowNode name="HistoryCheck"
+               ruleflowRef="DLIS-History-Check"
+               inLink="link-eligibility-pass"
+               outLink="link-history-gateway"/>
+
+  <decisionNode name="HistoryGateway"
+                inLink="link-history-gateway">
+    <outLink name="link-history-pass"
+             condition="context.application.historyCheckStatus == &quot;P&quot;"/>
+    <outLink name="link-history-fail"
+             condition="context.application.historyCheckStatus == &quot;F&quot;"/>
+  </decisionNode>
+
+  <!-- ── Gate 3: Payment Processing ──────────────────────────── -->
+  <subFlowNode name="PaymentProcessing"
+               ruleflowRef="DLIS-Payment-Processing"
+               inLink="link-history-pass"
+               outLink="link-payment-gateway"/>
+
+  <decisionNode name="PaymentGateway"
+                inLink="link-payment-gateway">
+    <outLink name="link-payment-pass"
+             condition="context.application.paymentStatus == &quot;P&quot;"/>
+    <outLink name="link-payment-fail"
+             condition="context.returnCode != 0"/>
+  </decisionNode>
+
+  <!-- ── Gate 4: First Authority Approval ─────────────────────── -->
+  <subFlowNode name="FirstApproval"
+               ruleflowRef="DLIS-Approval-Level1"
+               inLink="link-payment-pass"
+               outLink="link-approval1-gateway"/>
+
+  <decisionNode name="Approval1Gateway"
+                inLink="link-approval1-gateway">
+    <outLink name="link-approval1-pass"
+             condition="context.application.approval1Status == &quot;A&quot;"/>
+    <outLink name="link-approval1-fail"
+             condition="context.application.approval1Status == &quot;R&quot;"/>
+  </decisionNode>
+
+  <!-- ── Gate 5: Second Authority Approval ────────────────────── -->
+  <subFlowNode name="SecondApproval"
+               ruleflowRef="DLIS-Approval-Level2"
+               inLink="link-approval1-pass"
+               outLink="link-approval2-gateway"/>
+
+  <decisionNode name="Approval2Gateway"
+                inLink="link-approval2-gateway">
+    <outLink name="link-approval2-pass"
+             condition="context.application.approval2Status == &quot;A&quot;"/>
+    <outLink name="link-approval2-fail"
+             condition="context.application.approval2Status == &quot;R&quot;"/>
+  </decisionNode>
+
+  <!-- ── Gate 6: License Issuance ─────────────────────────────── -->
+  <subFlowNode name="LicenseIssuance"
+               ruleflowRef="DLIS-License-Issuance"
+               inLink="link-approval2-pass"
+               outLink="link-issued"/>
+
+  <!-- ── Terminal: License Issued ─────────────────────────────── -->
+  <endNode name="LicenseIssued"
+           inLink="link-issued">
+    <action>
+      context.returnCode = 0;
+      context.returnMessage = "DRIVER LICENSE ISSUED SUCCESSFULLY";
+    </action>
+  </endNode>
+
+  <!-- ── Terminal: Rejected ────────────────────────────────────── -->
+  <endNode name="ApplicationRejected"
+           inLink="link-eligibility-fail link-history-fail link-approval1-fail link-approval2-fail">
+    <action>
+      context.returnCode = 1;
+    </action>
+  </endNode>
+
+  <!-- ── Terminal: Payment Error ───────────────────────────────── -->
+  <endNode name="PaymentError"
+           inLink="link-payment-fail">
+    <action>
+      context.returnCode = 2;
+    </action>
+  </endNode>
+
+</ruleflow>

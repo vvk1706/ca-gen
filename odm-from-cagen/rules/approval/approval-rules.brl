@@ -1,0 +1,286 @@
+/*
+ * ODM BAL Rules — Approval Package
+ * Ruleset: approval
+ * Converted from: AB-RECORD-APPROVAL-1.ACB and AB-RECORD-APPROVAL-2.ACB
+ *
+ * Rules: BR-15, BR-16, BR-18, BR-19, BR-20, BR-21
+ */
+package com.dlis.odm.rules.approval;
+
+// ────────────────────────────────────────────────────────────────────────────
+// VALIDATE-DECISION-VALUE
+// Decision must be "A" (Approve) or "R" (Reject).
+// CA Gen source: AB-RECORD-APPROVAL-1.ACB lines 35–40
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "APR-001 Decision Value Must Be A Or R"
+    priority: 100
+    when
+        context is a RuleContext
+        the approvalDecision of context is not "A"
+        and the approvalDecision of context is not "R"
+    then
+        add a new RuleViolation(
+            "APR-001",
+            "DECISION MUST BE A=APPROVE OR R=REJECT",
+            "ERROR",
+            "approvalDecision"
+        ) to the violations of context ;
+        set the returnCode of context to 6 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-15 — Payment Gate Guard (Level 1 Approval)
+// CA Gen source: AB-RECORD-APPROVAL-1.ACB lines 51–56
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-15 Payment Must Be Completed Before First Approval"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the paymentStatus of the application of context is not "P"
+    then
+        set the returnCode of context to 4 ;
+        set the returnMessage of context to
+            "PAYMENT MUST BE COMPLETED BEFORE FIRST APPROVAL" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-16 — First Approval Gate Guard (Level 2 Approval)
+// CA Gen source: AB-RECORD-APPROVAL-2.ACB lines 51–56
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-16 First Approval Must Be Granted Before Second Approval"
+    agenda-group: "approval-level2-gate"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approval1Status of the application of context is not "A"
+    then
+        set the returnCode of context to 4 ;
+        set the returnMessage of context to
+            "FIRST APPROVAL MUST BE GRANTED BEFORE SECOND APPROVAL" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-18 — Approver Must Be Active (both levels)
+// CA Gen source: AB-RECORD-APPROVAL-1.ACB lines 58–67
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-18 Approver Must Be Active"
+    priority: 80
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approvalUser of context is not null
+        the activeStatus of the approvalUser of context is not "A"
+    then
+        add a new RuleViolation(
+            "BR-18",
+            "AUTHORITY USER NOT FOUND OR NOT ACTIVE",
+            "ERROR",
+            "approvalUser"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+rule "BR-18b Approver User Must Be Present"
+    priority: 85
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approvalUser of context is null
+    then
+        add a new RuleViolation(
+            "BR-18",
+            "AUTHORITY USER NOT FOUND OR NOT ACTIVE",
+            "ERROR",
+            "approvalUser"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-19 — Approver Level Enforcement (Level 1)
+// Authority officer must be at level "1" to perform first approval.
+// CA Gen source: AB-RECORD-APPROVAL-1.ACB lines 59–67
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-19 Level-1 Approver Must Have Authority Level 1"
+    agenda-group: "approval-level1-validate"
+    priority: 75
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approvalUser of context is not null
+        the authorityLevel of the approvalUser of context is not "1"
+    then
+        add a new RuleViolation(
+            "BR-19",
+            "AUTHORITY USER NOT FOUND OR NOT ACTIVE AT LEVEL 1",
+            "ERROR",
+            "authorityLevel"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-19b — Approver Level Enforcement (Level 2)
+// CA Gen source: AB-RECORD-APPROVAL-2.ACB lines 58–67
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-19b Level-2 Approver Must Have Authority Level 2"
+    agenda-group: "approval-level2-validate"
+    priority: 75
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approvalUser of context is not null
+        the authorityLevel of the approvalUser of context is not "2"
+    then
+        add a new RuleViolation(
+            "BR-19",
+            "AUTHORITY USER NOT FOUND OR NOT ACTIVE AT LEVEL 2",
+            "ERROR",
+            "authorityLevel"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-20 — License Type Authorisation
+// Officer's licenseTypesAuthorised must contain the application's licenseType.
+// CA Gen source: AB-RECORD-APPROVAL-1.ACB lines 69–74
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-20 Approver Must Be Authorised For License Type"
+    priority: 70
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approvalUser of context is not null
+        context has no violations
+        the licenseTypesAuthorised of the approvalUser of context
+            does not contain the licenseType of the application of context
+    then
+        add a new RuleViolation(
+            "BR-20",
+            "AUTHORITY USER IS NOT AUTHORISED FOR THIS LICENSE TYPE",
+            "ERROR",
+            "licenseTypesAuthorised"
+        ) to the violations of context ;
+        set the returnCode of context to 3 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-21 — Segregation of Duties: Different Approving Authorities
+// Second approver's AUTHORITY-NAME must differ from first approver's.
+// CA Gen source: AB-RECORD-APPROVAL-2.ACB lines 76–82
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-21 Second Approver Must Be From Different Authority"
+    agenda-group: "approval-level2-validate"
+    priority: 65
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approvalUser of context is not null
+        context has no violations
+        the approval1Authority of the application of context
+            is the authorityName of the approvalUser of context
+    then
+        add a new RuleViolation(
+            "BR-21",
+            "SECOND APPROVER MUST BE FROM A DIFFERENT AUTHORITY THAN FIRST APPROVER",
+            "ERROR",
+            "approvalUser"
+        ) to the violations of context ;
+        set the returnCode of context to 5 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// RECORD-APPROVAL-1-DECISION
+// Records the Level-1 decision on the application.
+// CA Gen source: AB-RECORD-APPROVAL-1.ACB lines 76–90
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "APR-REC-001 Record Level-1 Approve"
+    agenda-group: "record-approval1-result"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the approvalDecision of context is "A"
+    then
+        set the approval1Status of the application of context to "A" ;
+        set the approval1Authority of the application of context
+            to the authorityName of the approvalUser of context ;
+        set the approval1Date of the application of context to context.today ;
+        set the approval1Notes of the application of context
+            to the approvalDecisionNotes of context ;
+        set the applicationStatus of the application of context to "A2" ;
+        set the returnCode of context to 0 ;
+        set the returnMessage of context to
+            "FIRST APPROVAL RECORDED - APPLICATION FORWARDED FOR SECOND APPROVAL" ;
+
+rule "APR-REC-002 Record Level-1 Reject"
+    agenda-group: "record-approval1-result"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the approvalDecision of context is "R"
+    then
+        set the approval1Status of the application of context to "R" ;
+        set the approval1Authority of the application of context
+            to the authorityName of the approvalUser of context ;
+        set the approval1Date of the application of context to context.today ;
+        set the approval1Notes of the application of context
+            to the approvalDecisionNotes of context ;
+        set the applicationStatus of the application of context to "RE" ;
+        set the returnCode of context to 0 ;
+        set the returnMessage of context to
+            "FIRST APPROVAL REJECTED - APPLICATION CLOSED" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// RECORD-APPROVAL-2-DECISION
+// Records the Level-2 decision on the application.
+// CA Gen source: AB-RECORD-APPROVAL-2.ACB lines 84–99
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "APR-REC-003 Record Level-2 Approve"
+    agenda-group: "record-approval2-result"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the approvalDecision of context is "A"
+    then
+        set the approval2Status of the application of context to "A" ;
+        set the approval2Authority of the application of context
+            to the authorityName of the approvalUser of context ;
+        set the approval2Date of the application of context to context.today ;
+        set the approval2Notes of the application of context
+            to the approvalDecisionNotes of context ;
+        set the applicationStatus of the application of context to "AP" ;
+        set the returnCode of context to 0 ;
+        set the returnMessage of context to
+            "SECOND APPROVAL GRANTED - APPLICATION FULLY APPROVED FOR LICENSE ISSUE" ;
+
+rule "APR-REC-004 Record Level-2 Reject"
+    agenda-group: "record-approval2-result"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the approvalDecision of context is "R"
+    then
+        set the approval2Status of the application of context to "R" ;
+        set the approval2Authority of the application of context
+            to the authorityName of the approvalUser of context ;
+        set the approval2Date of the application of context to context.today ;
+        set the approval2Notes of the application of context
+            to the approvalDecisionNotes of context ;
+        set the rejectionReason of the application of context
+            to the approvalDecisionNotes of context ;
+        set the applicationStatus of the application of context to "RE" ;
+        set the returnCode of context to 0 ;
+        set the returnMessage of context to
+            "SECOND APPROVAL REJECTED - APPLICATION CLOSED" ;

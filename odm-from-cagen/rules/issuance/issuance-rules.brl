@@ -1,0 +1,274 @@
+/*
+ * ODM BAL Rules — License Issuance Package
+ * Ruleset: issuance
+ * Converted from: AB-ISSUE-LICENSE.ACB
+ *
+ * Rules: BR-17, BR-24, BR-25, BR-26, BR-29
+ */
+package com.dlis.odm.rules.issuance;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-25 — Valid Vehicle Class
+// CA Gen source: AB-ISSUE-LICENSE.ACB lines 46–50
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-25 Vehicle Class Must Be A B C Or D"
+    priority: 100
+    when
+        context is a RuleContext
+        the vehicleClass of context is not "A"
+        and the vehicleClass of context is not "B"
+        and the vehicleClass of context is not "C"
+        and the vehicleClass of context is not "D"
+    then
+        add a new RuleViolation(
+            "BR-25",
+            "VEHICLE CLASS MUST BE A, B, C OR D",
+            "ERROR",
+            "vehicleClass"
+        ) to the violations of context ;
+        set the returnCode of context to 3 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-17 — All Gates Must Be Passed Before Issuance (final safety re-check)
+// CA Gen source: AB-ISSUE-LICENSE.ACB lines 62–97
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-17a Application Status Must Be AP"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the applicationStatus of the application of context is not "AP"
+    then
+        add a new RuleViolation(
+            "BR-17",
+            "APPLICATION MUST BE FULLY APPROVED (STATUS=AP) BEFORE LICENSE CAN BE ISSUED",
+            "ERROR",
+            "applicationStatus"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+rule "BR-17b Eligibility Must Be Passed"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the eligibilityCheckStatus of the application of context is not "P"
+    then
+        add a new RuleViolation(
+            "BR-17",
+            "ELIGIBILITY CHECK HAS NOT BEEN PASSED",
+            "ERROR"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+rule "BR-17c History Must Be Passed"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the historyCheckStatus of the application of context is not "P"
+    then
+        add a new RuleViolation(
+            "BR-17",
+            "HISTORY CHECK HAS NOT BEEN PASSED",
+            "ERROR"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+rule "BR-17d Payment Must Be Completed"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the paymentStatus of the application of context is not "P"
+        and the paymentStatus of the application of context is not "W"
+    then
+        add a new RuleViolation(
+            "BR-17",
+            "PAYMENT HAS NOT BEEN COMPLETED",
+            "ERROR"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+rule "BR-17e First Approval Must Be Granted"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approval1Status of the application of context is not "A"
+    then
+        add a new RuleViolation(
+            "BR-17",
+            "FIRST AUTHORITY APPROVAL HAS NOT BEEN GRANTED",
+            "ERROR"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+rule "BR-17f Second Approval Must Be Granted"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the approval2Status of the application of context is not "A"
+    then
+        add a new RuleViolation(
+            "BR-17",
+            "SECOND AUTHORITY APPROVAL HAS NOT BEEN GRANTED",
+            "ERROR"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-24 — License Validity Periods (expiry date calculation)
+// L=1yr, P=2yr, O=5yr
+// CA Gen source: AB-ISSUE-LICENSE.ACB lines 102–115
+// These three rules are mutually exclusive based on licenseType.
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-24 Learner License Expiry 1 Year"
+    agenda-group: "calculate-expiry"
+    priority: 80
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the licenseType of the application of context is "L"
+    then
+        set the calculatedExpiryDate of context to
+            context.today plus 1 year ;
+
+rule "BR-24 Probation License Expiry 2 Years"
+    agenda-group: "calculate-expiry"
+    priority: 80
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the licenseType of the application of context is "P"
+    then
+        set the calculatedExpiryDate of context to
+            context.today plus 2 years ;
+
+rule "BR-24 Open License Expiry 5 Years"
+    agenda-group: "calculate-expiry"
+    priority: 80
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the licenseType of the application of context is "O"
+    then
+        set the calculatedExpiryDate of context to
+            context.today plus 5 years ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-29 — Expiry Date Must Be After Issue Date
+// CA Gen source: entity attribute validation + AB-ISSUE-LICENSE
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-29 Expiry Date Must Be After Issue Date"
+    agenda-group: "validate-expiry"
+    priority: 70
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the calculatedExpiryDate of context is not null
+        the calculatedExpiryDate of context <= context.today
+    then
+        add a new RuleViolation(
+            "BR-29",
+            "EXPIRY DATE MUST BE AFTER ISSUE DATE",
+            "ERROR",
+            "expiryDate"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// GENERATE-LICENSE-NUMBER
+// Format: {PREFIX}{VEHICLE-CLASS}{CANDIDATE-ID}{APPLICATION-ID}
+// Prefixes: LRN=Learner, PRB=Probation, OPN=Open
+// CA Gen source: AB-ISSUE-LICENSE.ACB lines 117–122
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "ISS-001 Generate License Number Learner"
+    agenda-group: "generate-license-number"
+    priority: 60
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the licenseType of the application of context is "L"
+    then
+        set the generatedLicenseNumber of context to
+            "LRN"
+            + the vehicleClass of context
+            + the candidateId of the application of context
+            + the applicationId of the application of context ;
+
+rule "ISS-001 Generate License Number Probation"
+    agenda-group: "generate-license-number"
+    priority: 60
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the licenseType of the application of context is "P"
+    then
+        set the generatedLicenseNumber of context to
+            "PRB"
+            + the vehicleClass of context
+            + the candidateId of the application of context
+            + the applicationId of the application of context ;
+
+rule "ISS-001 Generate License Number Open"
+    agenda-group: "generate-license-number"
+    priority: 60
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+        the licenseType of the application of context is "O"
+    then
+        set the generatedLicenseNumber of context to
+            "OPN"
+            + the vehicleClass of context
+            + the candidateId of the application of context
+            + the applicationId of the application of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-26 — Starting Demerit Balance = 12
+// CA Gen source: AB-ISSUE-LICENSE.ACB line 135
+// Note: this rule sets the value in the RuleContext; the CICS adapter
+// uses it when creating the ISSUED-LICENSE record in DB2.
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-26 Starting Demerit Balance Is 12"
+    agenda-group: "set-demerit-balance"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+    then
+        set the totalDemeritPoints of context to 12 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// ISS-REC-001 — Mark application as complete (status = "IS")
+// CA Gen source: AB-ISSUE-LICENSE.ACB lines 143–148
+// Actual DB2 write done by CICS adapter; this sets the status in context.
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "ISS-REC-001 Mark Application As Issued"
+    agenda-group: "record-issuance"
+    priority: 40
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+    then
+        set the applicationStatus of the application of context to "IS" ;
+        set the returnCode of context to 0 ;
+        set the returnMessage of context to "DRIVER LICENSE ISSUED SUCCESSFULLY" ;

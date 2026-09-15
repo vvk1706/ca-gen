@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Ruleflow: DLIS-Approval-Level1
+  Converted from CA Gen Action Block: AB-RECORD-APPROVAL-1
+
+  Business Rules executed:
+    BR-15  Payment must be completed before first approval (gate guard)
+    BR-18  Approver must be active (ACTIVE-STATUS = "A")
+    BR-19  Approver must have AUTHORITY-LEVEL = "1"
+    BR-20  Approver must be authorised for the application's license type
+
+  Decision outcomes:
+    Approve (A) → application.approval1Status = "A", applicationStatus = "A2"
+    Reject  (R) → application.approval1Status = "R", applicationStatus = "RE"
+-->
+<ruleflow
+    name="DLIS-Approval-Level1"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/ruleflow/1.0"
+    package="com.dlis.odm.ruleflows">
+
+  <description>
+    Records the first authority approval or rejection decision.
+    Validates approver credentials and license type authorisation.
+    Converted from AB-RECORD-APPROVAL-1.ACB.
+  </description>
+
+  <startNode name="Start" outLink="link-validate-decision-value"/>
+
+  <!-- Validate decision code is A or R -->
+  <ruleTaskNode name="ValidateDecisionValue"
+                rulesetRef="approval/validate-decision-value"
+                inLink="link-validate-decision-value"
+                outLink="link-check-payment-gate"/>
+
+  <!-- Gate guard: payment must be done (BR-15) -->
+  <ruleTaskNode name="CheckPaymentGate"
+                rulesetRef="approval/check-payment-gate-level1"
+                inLink="link-check-payment-gate"
+                outLink="link-validate-authority-user"/>
+
+  <!-- Authority user validation: active, level-1, license type auth (BR-18, BR-19, BR-20) -->
+  <ruleTaskNode name="ValidateAuthorityUser"
+                rulesetRef="approval/validate-authority-user-level1"
+                inLink="link-validate-authority-user"
+                outLink="link-approval1-validation-gateway"/>
+
+  <decisionNode name="Approval1ValidationGateway"
+                inLink="link-approval1-validation-gateway">
+    <outLink name="link-approval1-violations" condition="context.hasViolations()"/>
+    <outLink name="link-approval1-valid"      condition="!context.hasViolations()"/>
+  </decisionNode>
+
+  <!-- Record the approval decision -->
+  <ruleTaskNode name="RecordApproval1Decision"
+                rulesetRef="approval/record-approval1-decision"
+                inLink="link-approval1-valid"
+                outLink="link-approval1-done"/>
+
+  <endNode name="Approval1Violation" inLink="link-approval1-violations">
+    <action>
+      context.returnCode = 3;
+    </action>
+  </endNode>
+
+  <endNode name="Done" inLink="link-approval1-done"/>
+
+</ruleflow>

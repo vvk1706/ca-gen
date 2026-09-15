@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Ruleflow: DLIS-History-Check
+  Converted from CA Gen Action Block: AB-CHECK-HISTORY
+
+  Business Rules executed:
+    BR-13  Eligibility must be passed before history check (gate guard)
+    BR-10  Active suspension or disqualification disqualifies
+    BR-11  Total demerit points must not exceed 12
+    BR-12  Any unpaid fines disqualify
+
+  On completion:
+    PASS → application.historyCheckStatus = "P", applicationStatus = "HC"
+    FAIL → application.historyCheckStatus = "F", applicationStatus = "RE"
+-->
+<ruleflow
+    name="DLIS-History-Check"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/ruleflow/1.0"
+    package="com.dlis.odm.ruleflows">
+
+  <description>
+    Reviews candidate driving history for disqualifiers.
+    Checks suspensions, demerit points threshold, and unpaid fines.
+    Converted from AB-CHECK-HISTORY.ACB.
+  </description>
+
+  <startNode name="Start" outLink="link-check-elig-gate"/>
+
+  <!-- Gate guard: eligibility must be passed first (BR-13) -->
+  <ruleTaskNode name="CheckEligibilityGate"
+                rulesetRef="history/check-eligibility-gate"
+                inLink="link-check-elig-gate"
+                outLink="link-gate-decision"/>
+
+  <decisionNode name="EligibilityGateDecision"
+                inLink="link-gate-decision">
+    <outLink name="link-gate-blocked"
+             condition="context.returnCode == 2"/>
+    <outLink name="link-gate-open"
+             condition="context.returnCode == 0"/>
+  </decisionNode>
+
+  <endNode name="GateBlocked" inLink="link-gate-blocked">
+    <action>
+      context.returnMessage = "ELIGIBILITY CHECK MUST BE PASSED BEFORE HISTORY CHECK";
+    </action>
+  </endNode>
+
+  <!-- Suspension check (BR-10) -->
+  <ruleTaskNode name="CheckActiveSuspension"
+                rulesetRef="history/check-active-suspension"
+                inLink="link-gate-open"
+                outLink="link-accumulate-demerits"/>
+
+  <!-- Demerit accumulation and threshold (BR-11) -->
+  <ruleTaskNode name="AccumulateDemeritPoints"
+                rulesetRef="history/accumulate-demerit-points"
+                inLink="link-accumulate-demerits"
+                outLink="link-check-fines"/>
+
+  <!-- Unpaid fines check (BR-12) -->
+  <ruleTaskNode name="CheckUnpaidFines"
+                rulesetRef="history/check-unpaid-fines"
+                inLink="link-check-fines"
+                outLink="link-history-result-gateway"/>
+
+  <decisionNode name="HistoryResultGateway"
+                inLink="link-history-result-gateway">
+    <outLink name="link-hist-violations"
+             condition="context.hasViolations()"/>
+    <outLink name="link-hist-clear"
+             condition="!context.hasViolations()"/>
+  </decisionNode>
+
+  <ruleTaskNode name="RecordHistoryPass"
+                rulesetRef="history/record-history-pass"
+                inLink="link-hist-clear"
+                outLink="link-hist-done"/>
+
+  <ruleTaskNode name="RecordHistoryFail"
+                rulesetRef="history/record-history-fail"
+                inLink="link-hist-violations"
+                outLink="link-hist-done"/>
+
+  <endNode name="Done" inLink="link-hist-done"/>
+
+</ruleflow>

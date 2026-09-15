@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Ruleflow: DLIS-Payment-Processing
+  Converted from CA Gen Action Block: AB-PROCESS-PAYMENT
+
+  Business Rules executed:
+    BR-14  History check must be passed before payment (gate guard)
+    BR-22  No duplicate payment
+    BR-23  Active fee schedule must exist for license type + IF fee type
+    BR-28  Fee amount must be > 0
+
+  Transactional write (PAYMENT record creation, APPLICATION status update)
+  is performed via the mainframe CICS adapter after rule evaluation succeeds.
+
+  On completion:
+    SUCCESS → application.paymentStatus = "P", applicationStatus = "PA"
+    FAILURE → returnCode set, violations list populated
+-->
+<ruleflow
+    name="DLIS-Payment-Processing"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/ruleflow/1.0"
+    package="com.dlis.odm.ruleflows">
+
+  <description>
+    Validates and processes license application payment.
+    Rule evaluation only — actual DB2 writes are performed
+    by the CICS adapter (DLIS-PAYMENT-ADAPTER) after this ruleflow succeeds.
+    Converted from AB-PROCESS-PAYMENT.ACB.
+  </description>
+
+  <startNode name="Start" outLink="link-check-history-gate"/>
+
+  <!-- Gate guard: history must be passed first (BR-14) -->
+  <ruleTaskNode name="CheckHistoryGate"
+                rulesetRef="payment/check-history-gate"
+                inLink="link-check-history-gate"
+                outLink="link-history-gate-decision"/>
+
+  <decisionNode name="HistoryGateDecision"
+                inLink="link-history-gate-decision">
+    <outLink name="link-hist-gate-blocked" condition="context.returnCode != 0"/>
+    <outLink name="link-hist-gate-open"    condition="context.returnCode == 0"/>
+  </decisionNode>
+
+  <endNode name="HistoryGateBlocked" inLink="link-hist-gate-blocked"/>
+
+  <!-- Duplicate payment check (BR-22) -->
+  <ruleTaskNode name="CheckDuplicatePayment"
+                rulesetRef="payment/check-duplicate-payment"
+                inLink="link-hist-gate-open"
+                outLink="link-validate-fee-schedule"/>
+
+  <!-- Fee schedule validation (BR-23, BR-28) -->
+  <ruleTaskNode name="ValidateFeeSchedule"
+                rulesetRef="payment/validate-fee-schedule"
+                inLink="link-validate-fee-schedule"
+                outLink="link-payment-validation-gateway"/>
+
+  <decisionNode name="PaymentValidationGateway"
+                inLink="link-payment-validation-gateway">
+    <outLink name="link-payment-violations" condition="context.hasViolations()"/>
+    <outLink name="link-payment-valid"      condition="!context.hasViolations()"/>
+  </decisionNode>
+
+  <!-- Generate receipt number and mark approved -->
+  <ruleTaskNode name="GenerateReceiptAndApprove"
+                rulesetRef="payment/generate-receipt-and-approve"
+                inLink="link-payment-valid"
+                outLink="link-payment-done"/>
+
+  <endNode name="PaymentViolation" inLink="link-payment-violations">
+    <action>
+      context.returnCode = 3;
+    </action>
+  </endNode>
+
+  <endNode name="Done" inLink="link-payment-done"/>
+
+</ruleflow>

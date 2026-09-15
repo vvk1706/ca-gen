@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ODM Ruleflow: DLIS-Eligibility-Check
+  Converted from CA Gen Action Block: AB-CHECK-ELIGIBILITY
+
+  Business Rules executed (in priority order):
+    BR-01  License type must be L, P, or O
+    BR-02  Learner: minimum age 16
+    BR-03  Probation: minimum age 17
+    BR-04  Open: minimum age 18
+    BR-05  Probation requires active Learner license
+    BR-06  Open requires active Probation license
+
+  On completion:
+    PASS → application.eligibilityCheckStatus = "P", applicationStatus = "EC"
+    FAIL → application.eligibilityCheckStatus = "F", applicationStatus = "RE"
+-->
+<ruleflow
+    name="DLIS-Eligibility-Check"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/ruleflow/1.0"
+    package="com.dlis.odm.ruleflows">
+
+  <description>
+    Performs eligibility check on the license application.
+    Evaluates minimum age and upgrade path requirements.
+    Converted from AB-CHECK-ELIGIBILITY.ACB.
+  </description>
+
+  <startNode name="Start" outLink="link-compute-age"/>
+
+  <ruleTaskNode name="ComputeCandidateAge"
+                rulesetRef="eligibility/compute-candidate-age"
+                inLink="link-compute-age"
+                outLink="link-validate-license-type"/>
+
+  <ruleTaskNode name="ValidateLicenseType"
+                rulesetRef="eligibility/validate-license-type"
+                inLink="link-validate-license-type"
+                outLink="link-check-min-age"/>
+
+  <ruleTaskNode name="CheckMinimumAge"
+                rulesetRef="eligibility/check-minimum-age"
+                inLink="link-check-min-age"
+                outLink="link-check-upgrade-path"/>
+
+  <ruleTaskNode name="CheckUpgradePath"
+                rulesetRef="eligibility/check-upgrade-path"
+                inLink="link-check-upgrade-path"
+                outLink="link-eligibility-result-gateway"/>
+
+  <decisionNode name="EligibilityResultGateway"
+                inLink="link-eligibility-result-gateway">
+    <outLink name="link-elig-violations"
+             condition="context.hasViolations()"/>
+    <outLink name="link-elig-clear"
+             condition="!context.hasViolations()"/>
+  </decisionNode>
+
+  <ruleTaskNode name="RecordEligibilityPass"
+                rulesetRef="eligibility/record-eligibility-pass"
+                inLink="link-elig-clear"
+                outLink="link-elig-done"/>
+
+  <ruleTaskNode name="RecordEligibilityFail"
+                rulesetRef="eligibility/record-eligibility-fail"
+                inLink="link-elig-violations"
+                outLink="link-elig-done"/>
+
+  <endNode name="Done" inLink="link-elig-done"/>
+
+</ruleflow>

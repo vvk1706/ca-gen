@@ -1,0 +1,54 @@
+<!--
+  ODM Decision Table: Upgrade Path Requirements
+  Converted from: Business Rules BR-05, BR-06
+  Package: com.dlis.odm.rules.eligibility
+  Ruleset: eligibility/upgrade-path-table
+
+  Defines which prior license type is required to apply for each license grade.
+  Learner licenses have no prerequisite.
+  Business users can extend this table if new license grades are introduced.
+-->
+<DecisionTable
+    name="LicenseUpgradePathTable"
+    xmlns="http://www.ibm.com/xmlns/prod/rules/dt/1.0"
+    package="com.dlis.odm.rules.eligibility"
+    ruleflow-group="license-upgrade-path">
+
+  <Description>
+    Upgrade path requirements per license type.
+    Learner = no prerequisite.
+    Probation = must hold active Learner.
+    Open = must hold active Probation.
+  </Description>
+
+  <ConditionColumn id="col-license-type"
+                   label="Applying For"
+                   expression="the licenseType of the application of context"/>
+
+  <ActionColumn id="col-requires-prior"
+                label="Requires Prior License Type"
+                expression="set the requiredPriorLicenseType of context to {0}"/>
+
+  <ActionColumn id="col-upgrade-error"
+                label="Upgrade Error Message"
+                expression="set the upgradeErrorMessage of context to {0}"/>
+
+  <Row id="row-learner-no-prereq">
+    <Condition col="col-license-type" value="&quot;L&quot;"/>
+    <Action col="col-requires-prior"  value="&quot;&quot;"/>
+    <Action col="col-upgrade-error"   value="&quot;&quot;"/>
+  </Row>
+
+  <Row id="row-probation-needs-learner">
+    <Condition col="col-license-type" value="&quot;P&quot;"/>
+    <Action col="col-requires-prior"  value="&quot;L&quot;"/>
+    <Action col="col-upgrade-error"   value="&quot;CANDIDATE MUST HOLD AN ACTIVE LEARNER LICENSE TO APPLY FOR PROBATION&quot;"/>
+  </Row>
+
+  <Row id="row-open-needs-probation">
+    <Condition col="col-license-type" value="&quot;O&quot;"/>
+    <Action col="col-requires-prior"  value="&quot;P&quot;"/>
+    <Action col="col-upgrade-error"   value="&quot;CANDIDATE MUST HOLD AN ACTIVE PROBATION LICENSE TO APPLY FOR OPEN&quot;"/>
+  </Row>
+
+</DecisionTable>

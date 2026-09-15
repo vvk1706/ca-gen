@@ -1,0 +1,200 @@
+================================================================================
+  SUMMARY REPORT: CA Gen to IBM ODM Migration
+  Project: Driver License Issuance System (DLIS)
+  Output Directory: odm-from-cagen/
+================================================================================
+
+WHAT WAS ANALYSED
+-----------------
+The CA Gen DLIS application was fully read and mapped:
+
+  - 9 Action Blocks (.ACB)     each converted to an ODM ruleflow + BAL rule package
+  - 29 Business Rules          all from docs/05-BUSINESS-RULES.md + implicit rules
+                               extracted directly from action block source code
+  - 7 Entities (.ENT)          all converted to Java BOM classes
+  - 8-stage sequential pipeline preserved as gated ruleflows with gate-guard rules
+
+
+WHAT WAS GENERATED — 42 FILES
+------------------------------
+
+  Layer              Count  Key Artefacts
+  -----------------  -----  -------------------------------------------------------
+  BOM (Java)             9  Candidate.java, LicenseApplication.java,
+                            DrivingHistory.java, Payment.java, IssuedLicense.java,
+                            AuthorityUser.java, LicenseFeeSchedule.java,
+                            RuleContext.java, RuleViolation.java
+
+  Ruleflows (XML)        7  DLIS-Main-Workflow.rflo  (top-level pipeline)
+                            DLIS-Eligibility-Check.rflo  (AB-CHECK-ELIGIBILITY)
+                            DLIS-History-Check.rflo      (AB-CHECK-HISTORY)
+                            DLIS-Payment-Processing.rflo (AB-PROCESS-PAYMENT)
+                            DLIS-Approval-Level1.rflo    (AB-RECORD-APPROVAL-1)
+                            DLIS-Approval-Level2.rflo    (AB-RECORD-APPROVAL-2)
+                            DLIS-License-Issuance.rflo   (AB-ISSUE-LICENSE)
+
+  BAL Rules (.brl)       6  candidate-rules.brl   (BR-07, 08, 09, 27)
+  packages / 35 rules       eligibility-rules.brl (BR-01 to BR-06)
+                            history-rules.brl     (BR-10 to BR-13)
+                            payment-rules.brl     (BR-14, 22, 23, 28)
+                            approval-rules.brl    (BR-15, 16, 18 to 21)
+                            issuance-rules.brl    (BR-17, 24, 25, 26, 29)
+
+  Decision Tables        2  LicenseAgeAndValidityTable.dtt  (replaces 6 IF-THEN chains)
+                            LicenseUpgradePathTable.dtt     (replaces 2 IF-THEN chains)
+
+  Mainframe — z/OS       4  DLISQLUP.cbl  (CICS: pre-rule DB2 data loader)
+  (CICS COBOL + DDL)        DLISPAY.cbl   (CICS: payment DB2 writer)
+                            DLISLICS.cbl  (CICS: license issuance DB2 writer)
+                            DLIS-DDL.sql  (IBM Db2 for z/OS: all 7 tables)
+
+  REST API (Java)        2  DlisRuleResource.java   (JAX-RS: 9 endpoints)
+                            ExciCicsAdapter.java    (EXCI bridge to CICS)
+
+  Project Descriptors    3  dlis-rules.ruleproject  (Rule Designer import)
+                            pom.xml                 (Maven parent)
+                            README.md               (project overview)
+
+  Documentation          8  docs/README.md
+                            docs/01-CONVERSION-OVERVIEW.md
+                            docs/02-ARCHITECTURE.md
+                            docs/03-BOM-REFERENCE.md
+                            docs/04-RULEFLOW-REFERENCE.md
+                            docs/05-BUSINESS-RULES-CATALOGUE.md
+                            docs/06-MAINFRAME-INTEGRATION.md
+                            docs/07-DEPLOYMENT-GUIDE.md
+
+
+BUSINESS RULES COVERAGE
+-----------------------
+
+  Domain                            Rules                      Count
+  --------------------------------  -------------------------  -----
+  License Type                      BR-01                          1
+  Candidate                         BR-07, 08, 09, 27              4
+  Eligibility (age + upgrade path)  BR-02, 03, 04, 05, 06          5
+  History (suspension/demerits/fines) BR-10, 11, 12, 13            4
+  Sequential gate enforcement       BR-14, 15, 16, 17              4
+  Approval (level/auth/segregation) BR-18, 19, 20, 21              4
+  Payment                           BR-22, 23, 28                  3
+  Issuance (expiry/class/demerits)  BR-24, 25, 26, 29              4
+                                                             -------
+  TOTAL                                                           29
+
+
+CA GEN TO ODM CONCEPT MAPPING
+------------------------------
+
+  CA Gen Artefact                ODM Artefact
+  -----------------------------  -----------------------------------------
+  CANDIDATE.ENT                  Candidate.java (BOM class)
+  LICENSE-APPLICATION.ENT        LicenseApplication.java (BOM class)
+  DRIVING-HISTORY.ENT            DrivingHistory.java (BOM class)
+  PAYMENT.ENT                    Payment.java (BOM class)
+  ISSUED-LICENSE.ENT             IssuedLicense.java (BOM class)
+  AUTHORITY-USER.ENT             AuthorityUser.java (BOM class)
+  LICENSE-FEE-SCHEDULE.ENT       LicenseFeeSchedule.java (BOM class)
+  Working Storage (combined)     RuleContext.java (session fact)
+  Return Code + Message          RuleViolation.java
+  AB-CHECK-ELIGIBILITY.ACB       DLIS-Eligibility-Check.rflo + eligibility-rules.brl
+  AB-CHECK-HISTORY.ACB           DLIS-History-Check.rflo + history-rules.brl
+  AB-PROCESS-PAYMENT.ACB         DLIS-Payment-Processing.rflo + payment-rules.brl
+  AB-RECORD-APPROVAL-1.ACB       DLIS-Approval-Level1.rflo + approval-rules.brl
+  AB-RECORD-APPROVAL-2.ACB       DLIS-Approval-Level2.rflo + approval-rules.brl
+  AB-ISSUE-LICENSE.ACB           DLIS-License-Issuance.rflo + issuance-rules.brl
+  AB-CREATE-CANDIDATE.ACB        candidate-rules.brl + REST POST /candidates
+  AB-CREATE-APPLICATION.ACB      candidate-rules.brl + REST POST /applications
+  TRG-PAYMENT-APPROVAL-ISSUE     REST endpoints: /payment, /approvals/1, /approvals/2, /issue
+  IF-THEN age chain (x6)         LicenseAgeAndValidityTable.dtt (Decision Table)
+  IF-THEN upgrade chain (x2)     LicenseUpgradePathTable.dtt (Decision Table)
+  CA Gen DB2 views (READ/CHANGE) CICS COBOL programs: DLISQLUP, DLISPAY, DLISLICS
+
+
+REST API ENDPOINTS
+------------------
+
+  Method  Endpoint                                    CA Gen Origin
+  ------  ------------------------------------------  -------------------------
+  POST    /api/dlis/candidates                         AB-CREATE-CANDIDATE
+  POST    /api/dlis/applications                       AB-CREATE-APPLICATION
+  POST    /api/dlis/applications/{id}/eligibility-check AB-CHECK-ELIGIBILITY
+  POST    /api/dlis/applications/{id}/history-check    AB-CHECK-HISTORY
+  POST    /api/dlis/applications/{id}/payment          AB-PROCESS-PAYMENT
+  POST    /api/dlis/applications/{id}/approvals/1      AB-RECORD-APPROVAL-1
+  POST    /api/dlis/applications/{id}/approvals/2      AB-RECORD-APPROVAL-2
+  POST    /api/dlis/applications/{id}/issue            AB-ISSUE-LICENSE
+  GET     /api/dlis/applications/{id}/status           AB-INQUIRE-APPLICATION-STATUS
+
+
+MAINFRAME INFRASTRUCTURE STRATEGY
+----------------------------------
+The existing z/OS/CICS/DB2 infrastructure is preserved via an EXCI bridge pattern:
+
+  1. PRE-RULE (read path)
+     DLISQLUP is called before every ODM ruleset execution.
+     It retrieves: application, candidate, driving history, existing licenses,
+     and active fee schedule from IBM Db2 for z/OS.
+     Results are deserialised into RuleContext for pure in-memory ODM evaluation.
+
+  2. POST-RULE (write path — transactional)
+     DLISPAY  — called after payment rules pass:
+                INSERT DLIS.PAYMENT + UPDATE DLIS.LICENSE_APPLICATION
+     DLISLICS — called after issuance rules pass:
+                INSERT DLIS.ISSUED_LICENSE + UPDATE DLIS.LICENSE_APPLICATION
+
+  3. ODM rules are stateless and side-effect-free (pure evaluation only).
+     DB2 writes only occur after rules confirm business validity.
+
+  EXCI connectivity:
+     Java layer  -->  ExciCicsAdapter.java  -->  CICS TG (TCP/IP)  -->  z/OS CICS region
+
+  Environment variables required:
+     CICS_APPLID       VTAM applid of target CICS region (e.g., CICSPROD)
+     CICS_USERID       RACF user ID for EXCI invocation (e.g., DLISUSR)
+     CICS_COMMAREA_MAX Maximum COMMAREA size in bytes (default: 32767)
+
+
+DB2 TABLES (IBM Db2 for z/OS — Schema: DLIS)
+---------------------------------------------
+
+  Table                   CA Gen Entity            Key Constraints
+  ----------------------  -----------------------  ----------------------------
+  DLIS.CANDIDATE          CANDIDATE.ENT            PK auto-identity; UQ ID_NUMBER
+  DLIS.LICENSE_APPLICATION LICENSE-APPLICATION.ENT FK to CANDIDATE; CHECK all status codes
+  DLIS.DRIVING_HISTORY    DRIVING-HISTORY.ENT      FK to CANDIDATE; CHECK incident type
+  DLIS.PAYMENT            PAYMENT.ENT              FK to APPLICATION+CANDIDATE; CHECK amount>0
+  DLIS.ISSUED_LICENSE     ISSUED-LICENSE.ENT       UQ LICENSE_NUMBER; CHECK expiry>issue
+  DLIS.AUTHORITY_USER     AUTHORITY-USER.ENT       UQ USER_CODE; CHECK level in (1,2)
+  DLIS.LICENSE_FEE_SCHEDULE LICENSE-FEE-SCHEDULE.ENT CHECK FEE_AMOUNT>0; index on type+date
+
+
+KEY IMPROVEMENTS OVER CA GEN
+------------------------------
+
+  CA Gen                               ODM Architecture
+  -----------------------------------  -------------------------------------------
+  Rules embedded in generated COBOL    Rules in Decision Center — no regeneration
+  No rule change audit trail           Full version history in Decision Center
+  Business users cannot edit rules     Browser-based BAL editor in Decision Center
+  Rule logic coupled with DB2 I/O      Pure rule evaluation; I/O in CICS adapters
+  Changes require full regeneration    Rules hot-deployed via Decision Center
+  Testing requires full app rebuild    ODM Rule Unit Test framework for isolation
+  Duplicate logic across action blocks Single rule definition shared by all flows
+
+
+DOCUMENTATION INDEX
+-------------------
+
+  File                               Description
+  ---------------------------------  -------------------------------------------
+  docs/01-CONVERSION-OVERVIEW.md     Migration rationale, methodology, traceability
+  docs/02-ARCHITECTURE.md            System design, component diagram, data flow
+  docs/03-BOM-REFERENCE.md           All 9 BOM classes, fields, CA Gen origins
+  docs/04-RULEFLOW-REFERENCE.md      All 7 ruleflows, nodes, conditions, mappings
+  docs/05-BUSINESS-RULES-CATALOGUE.md All 29 rules: BAL source + CA Gen traceability
+  docs/06-MAINFRAME-INTEGRATION.md   CICS programs, EXCI bridge, COMMAREA layouts
+  docs/07-DEPLOYMENT-GUIDE.md        Step-by-step: Rule Designer, RES, z/OS, REST
+
+================================================================================
+  End of Summary
+================================================================================

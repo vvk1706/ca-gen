@@ -1,0 +1,145 @@
+/*
+ * ODM BAL Rules — History Check Package
+ * Ruleset: history
+ * Converted from: AB-CHECK-HISTORY.ACB
+ *
+ * Rules: BR-10, BR-11, BR-12, BR-13
+ */
+package com.dlis.odm.rules.history;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-13 — Eligibility Gate Guard
+// History check cannot run unless eligibility was passed.
+// CA Gen source: AB-CHECK-HISTORY.ACB lines 53–58
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-13 Eligibility Must Be Passed Before History Check"
+    priority: 100
+    when
+        context is a RuleContext
+        the eligibilityCheckStatus of the application of context is not "P"
+    then
+        set the returnCode of context to 2 ;
+        set the returnMessage of context to
+            "ELIGIBILITY CHECK MUST BE PASSED BEFORE HISTORY CHECK" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-10 — Active Suspension or Disqualification
+// CA Gen source: AB-CHECK-HISTORY.ACB lines 65–73
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-10 Active Suspension Disqualifies"
+    priority: 80
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        there is a DrivingHistory history in the drivingHistoryRecords of context
+            such that
+                the recordStatus of history is "A"
+                and ( the incidentType of history is "SU"
+                      or the incidentType of history is "DQ" )
+                and ( the suspensionEndDate of history is null
+                      or the suspensionEndDate of history >= context.today )
+    then
+        add a new RuleViolation(
+            "BR-10",
+            "CANDIDATE IS UNDER AN ACTIVE SUSPENSION OR DISQUALIFICATION",
+            "ERROR"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// ACCUMULATE-DEMERITS
+// Sums demeritPoints from all active history records.
+// CA Gen source: AB-CHECK-HISTORY.ACB line 76
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "HIST-001 Accumulate Total Demerit Points"
+    priority: 75
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+    then
+        set the totalDemeritPoints of context to
+            the sum of the demeritPoints
+            of each DrivingHistory history in the drivingHistoryRecords of context
+            where the recordStatus of history is "A" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-11 — Demerit Points Threshold
+// CA Gen source: AB-CHECK-HISTORY.ACB lines 90–94
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-11 Total Demerit Points Exceed 12"
+    priority: 70
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the totalDemeritPoints of context > 12
+    then
+        add a new RuleViolation(
+            "BR-11",
+            "TOTAL DEMERIT POINTS EXCEED ALLOWABLE THRESHOLD OF 12",
+            "ERROR"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-12 — Unpaid Fines
+// CA Gen source: AB-CHECK-HISTORY.ACB lines 78–86
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-12 Unpaid Fines Disqualify"
+    priority: 70
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        there is a DrivingHistory history in the drivingHistoryRecords of context
+            such that
+                the recordStatus of history is "A"
+                and the fineAmount of history > 0
+                and the finePaidStatus of history is "N"
+    then
+        add a new RuleViolation(
+            "BR-12",
+            "CANDIDATE HAS OUTSTANDING UNPAID FINES",
+            "ERROR"
+        ) to the violations of context ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// RECORD-HISTORY-PASS
+// CA Gen source: AB-CHECK-HISTORY.ACB lines 108–113
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "HIST-REC-001 Record History Pass"
+    agenda-group: "record-result"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has no violations
+    then
+        set the historyCheckStatus of the application of context to "P" ;
+        set the historyCheckDate of the application of context to context.today ;
+        set the applicationStatus of the application of context to "HC" ;
+        set the returnMessage of context to "HISTORY CHECK PASSED" ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// RECORD-HISTORY-FAIL
+// CA Gen source: AB-CHECK-HISTORY.ACB lines 104–116
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "HIST-REC-002 Record History Fail"
+    agenda-group: "record-result"
+    priority: 50
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        context has violations
+    then
+        set the historyCheckStatus of the application of context to "F" ;
+        set the historyCheckDate of the application of context to context.today ;
+        set the historyCheckNotes of the application of context
+            to the message of the first violation of context ;
+        set the applicationStatus of the application of context to "RE" ;
+        set the returnCode of context to 1 ;
+        set the returnMessage of context
+            to the message of the first violation of context ;

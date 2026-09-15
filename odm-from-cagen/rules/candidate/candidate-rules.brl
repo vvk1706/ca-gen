@@ -1,0 +1,93 @@
+/*
+ * ODM BAL Rules — Candidate Management Package
+ * Ruleset: candidate
+ * Converted from: AB-CREATE-CANDIDATE.ACB, AB-CREATE-APPLICATION.ACB
+ *
+ * Rules: BR-07, BR-08, BR-09, BR-27
+ */
+package com.dlis.odm.rules.candidate;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-07 — Unique National ID
+// CA Gen source: AB-CREATE-CANDIDATE.ACB lines 38–46
+// Note: duplicate check queries DB2 via service layer before invoking ODM.
+// The result is passed in as a flag on RuleContext.
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-07 Candidate ID Number Must Be Unique"
+    priority: 100
+    when
+        context is a RuleContext
+        the returnCode of context is 99   /* set by service layer if dup found */
+    then
+        add a new RuleViolation(
+            "BR-07",
+            "CANDIDATE WITH THIS ID NUMBER ALREADY EXISTS",
+            "ERROR",
+            "idNumber"
+        ) to the violations of context ;
+        set the returnCode of context to 1 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-08 — Date of Birth Must Be in the Past
+// CA Gen source: AB-CREATE-CANDIDATE.ACB lines 52–57
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-08 Date Of Birth Must Be In The Past"
+    priority: 90
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the candidate of context is not null
+        the dateOfBirth of the candidate of context >= context.today
+    then
+        add a new RuleViolation(
+            "BR-08",
+            "DATE OF BIRTH MUST BE IN THE PAST",
+            "ERROR",
+            "dateOfBirth"
+        ) to the violations of context ;
+        set the returnCode of context to 2 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-27 — Candidate Active Status Check (before application creation)
+// CA Gen source: AB-CREATE-APPLICATION.ACB lines 30–43
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-27 Candidate Must Be Active To Submit Application"
+    priority: 85
+    when
+        context is a RuleContext
+        the returnCode of context is 0
+        the candidate of context is not null
+        the recordStatus of the candidate of context is not "A"
+    then
+        add a new RuleViolation(
+            "BR-27",
+            "CANDIDATE RECORD IS INACTIVE",
+            "ERROR",
+            "recordStatus"
+        ) to the violations of context ;
+        set the returnCode of context to 1 ;
+
+// ────────────────────────────────────────────────────────────────────────────
+// BR-09 — No Duplicate Active Application
+// Applications in status RE or IS are terminal and do not count.
+// CA Gen source: AB-CREATE-APPLICATION.ACB lines 52–66
+// Note: the service layer queries DB2 for existing active applications and
+// sets returnCode=99 if one is found.
+// ────────────────────────────────────────────────────────────────────────────
+
+rule "BR-09 No Active Application Already Exists For This License Type"
+    priority: 80
+    when
+        context is a RuleContext
+        the returnCode of context is 98   /* set by service layer if dup application found */
+    then
+        add a new RuleViolation(
+            "BR-09",
+            "AN ACTIVE APPLICATION ALREADY EXISTS FOR THIS LICENSE TYPE",
+            "ERROR",
+            "licenseType"
+        ) to the violations of context ;
+        set the returnCode of context to 3 ;
