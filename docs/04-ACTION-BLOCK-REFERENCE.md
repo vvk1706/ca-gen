@@ -34,10 +34,14 @@ Action Blocks are the executable logic units of the DLIS CA Gen model. Each Acti
 | WS-LAST-NAME | CHARACTER(30) | Yes | Last name |
 | WS-DATE-OF-BIRTH | DATE | Yes | Date of birth |
 | WS-ID-NUMBER | CHARACTER(20) | Yes | National ID / Passport |
-| WS-ADDRESS-LINE-1 | CHARACTER(50) | Yes | Address |
+| WS-ADDRESS-LINE-1 | CHARACTER(50) | Yes | Street address |
+| WS-ADDRESS-LINE-2 | CHARACTER(50) | No | Additional address line |
 | WS-CITY | CHARACTER(30) | Yes | City |
 | WS-STATE-PROVINCE | CHARACTER(30) | Yes | State/Province |
+| WS-POSTAL-CODE | CHARACTER(10) | No | Postal / ZIP code |
 | WS-COUNTRY | CHARACTER(30) | Yes | Country |
+| WS-PHONE-NUMBER | CHARACTER(15) | No | Contact phone |
+| WS-EMAIL-ADDRESS | CHARACTER(60) | No | Contact email |
 | WS-CREATED-BY | CHARACTER(20) | Yes | User ID |
 
 ### Exports

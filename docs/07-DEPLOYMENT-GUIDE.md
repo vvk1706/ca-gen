@@ -239,12 +239,37 @@ INSERT INTO LICENSE_FEE_SCHEDULE VALUES
 
 ## 7. Artifact File Reference
 
+### CA Gen Source (`src/`)
+
 | Directory | Extension | Count | Artifact Type |
 |---|---|---|---|
 | `src/encyclopedia/entities/` | `.ENT` | 7 | Entity definitions |
-| `src/encyclopedia/views/` | `.VEW` | 6 | View definitions (24 views) |
+| `src/encyclopedia/views/` | `.VEW` | 6 | View definition files (27 views total) |
 | `src/encyclopedia/functions/` | `.BFN` | 1 | Business function decomposition |
 | `src/action-blocks/` | `.ACB` | 9 | Action block logic |
-| `src/screens/` | `.SCR` | 9 | Screen map definitions |
-| `src/triggers/` | `.TRG` | 4 | Trigger definitions (20+ triggers) |
-| **Total** | | **36 files** | |
+| `src/screens/` | `.SCR` | 10 | Screen map definitions |
+| `src/triggers/` | `.TRG` | 4 | Trigger files (19 triggers total) |
+| **Total** | | **37 files** | |
+
+### Mainframe Target (`mf/`)
+
+| Directory | Extension | Count | Artifact Type |
+|---|---|---|---|
+| `mf/bms/` | `.bms` | 5 | BMS screen definitions |
+| `mf/cobol/` | `.cbl` | 10 | COBOL program modules |
+| `mf/copybook/` | `.cpy` | 3 | Shared copybooks |
+| `mf/csd/` | `.csd` | 1 | CICS resource definitions |
+| `mf/db2/` | `.sql` | 3 | DB2 DDL and grants |
+| `mf/jcl/` | `.jcl` | 5 | JCL build/deployment jobs |
+| `mf/proc/` | `.proc` | 2 | JCL procedures |
+
+### ODM Rule Project (`odm-from-cagen/`)
+
+| Directory | Extension | Count | Artifact Type |
+|---|---|---|---|
+| `odm-from-cagen/bom/` | `.java` | 9 | Business Object Model classes |
+| `odm-from-cagen/rules/` | `.brl` | 6 | Business rule language artefacts |
+| `odm-from-cagen/decision-tables/` | `.dtt` | 2 | Decision table definitions |
+| `odm-from-cagen/ruleflows/` | `.rflo` | 7 | Rule execution flows |
+| `odm-from-cagen/mainframe/` | `.cbl`/`.sql` | 4 | CICS and DB2 integration stubs |
+| `odm-from-cagen/service/` | `.java` | 2 | REST rule service (JAX-RS) |

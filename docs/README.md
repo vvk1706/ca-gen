@@ -59,11 +59,28 @@ ca-gen/
 ├── src/
 │   ├── encyclopedia/
 │   │   ├── entities/              ← 7 entity definitions (.ENT)
-│   │   ├── views/                 ← 24 views across 6 files (.VEW)
+│   │   ├── views/                 ← 27 views across 6 files (.VEW)
 │   │   └── functions/             ← Business function decomposition (.BFN)
 │   ├── action-blocks/             ← 9 action blocks (.ACB)
-│   ├── screens/                   ← 9 screen maps (.SCR)
-│   └── triggers/                  ← 4 trigger files (.TRG)
+│   ├── screens/                   ← 10 screen maps (.SCR)
+│   └── triggers/                  ← 4 trigger files (.TRG, 19 triggers total)
+├── mf/                            ← Mainframe target implementation
+│   ├── bms/                       ← BMS screen definitions (5 maps)
+│   ├── cobol/                     ← Generated COBOL programs (10 modules)
+│   ├── copybook/                  ← Shared copybooks (3 files)
+│   ├── csd/                       ← CICS resource definitions
+│   ├── db2/                       ← DB2 DDL scripts (3 SQL files)
+│   ├── jcl/                       ← JCL build and deployment jobs (5 files)
+│   ├── proc/                      ← JCL procedure library (2 procs)
+│   └── docs/                      ← Mainframe-specific documentation
+├── odm-from-cagen/                ← IBM ODM rule project extracted from CA Gen model
+│   ├── bom/                       ← Business Object Model (Java)
+│   ├── decision-tables/           ← ODM decision tables (2 .dtt files)
+│   ├── ruleflows/                 ← Rule execution flows (7 .rflo files)
+│   ├── rules/                     ← Rule artefacts by domain (6 .brl files)
+│   ├── mainframe/                 ← Mainframe CICS/DB2 integration stubs
+│   ├── service/                   ← REST rule service (Java)
+│   └── docs/                      ← ODM conversion documentation
 └── reports/
-    └── 02-SUMMARY-CA-GEN-PROJECT-NO-DOCS.TXT
+    └── various analysis and comparison reports
 ```

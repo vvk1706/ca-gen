@@ -48,7 +48,7 @@ The **CA Gen Generator** produces executable target code (COBOL/CICS or C/Java) 
 ├─────────────────────────────────────────────────────────────┤
 │                       DATA LAYER                            │
 │   Entities (.ENT)             Views (.VEW)                  │
-│   CANDIDATE                   24 scoped views across        │
+│   CANDIDATE                   27 scoped views across        │
 │   LICENSE-APPLICATION         6 view files                  │
 │   DRIVING-HISTORY                                           │
 │   PAYMENT                                                   │
@@ -198,34 +198,47 @@ stateDiagram-v2
 
 ## 5. Action Block Call Chain
 
+Triggers are grouped into four source files. The diagram shows each trigger by its actual name and the action block it invokes.
+
 ```mermaid
 flowchart TD
-    SCR1[SCR-CANDIDATE-MAINT] --> TRG1[TRG-CANDIDATE-MAINT]
-    TRG1 --> AB1[AB-CREATE-CANDIDATE]
+    subgraph TRG-CANDIDATE-MAINT.TRG
+        SCR1[SCR-CANDIDATE-MAINT] -->|PF1| T1A[TRG-CANDIDATE-CREATE]
+        SCR1 -->|PF2| T1B[TRG-CANDIDATE-UPDATE]
+        SCR1 -->|PF3| T1C[TRG-CANDIDATE-INQUIRE]
+        SCR1 -->|PF4| T1D[TRG-CANDIDATE-DEACTIVATE]
+    end
+    subgraph TRG-APPLICATION-ENTRY.TRG
+        SCR2[SCR-APPLICATION-ENTRY] -->|PF1| T2A[TRG-APPLICATION-SUBMIT]
+        SCR2 -->|PF3| T2B[TRG-CANDIDATE-LOOKUP]
+        SCR2 -->|PF5| T2C[TRG-FEE-CALCULATE]
+    end
+    subgraph TRG-CHECK-AND-STATUS.TRG
+        SCR3[SCR-ELIGIBILITY-CHECK] -->|PF1| T3A[TRG-ELIGIBILITY-RUN]
+        SCR4[SCR-HISTORY-CHECK] -->|PF1| T3B[TRG-HISTORY-RUN]
+        SCR9[SCR-APPLICATION-STATUS] -->|ENTER| T3C[TRG-STATUS-INQUIRE]
+        SHARED([Multiple screens]) -->|PF3| T3D[TRG-APPLICATION-LOOKUP]
+    end
+    subgraph TRG-PAYMENT-APPROVAL-ISSUE.TRG
+        SCR5[SCR-PAYMENT-ENTRY] -->|PF1| T4A[TRG-PAYMENT-PROCESS]
+        SCR5 -->|PF5| T4B[TRG-RECEIPT-PRINT]
+        SCR6[SCR-APPROVAL-AUTH1] -->|PF1| T4C[TRG-APPROVAL1-SUBMIT]
+        SCR7[SCR-APPROVAL-AUTH2] -->|PF1| T4D[TRG-APPROVAL2-SUBMIT]
+        SCR6 & SCR7 -->|PF4| T4E[TRG-AUTHORITY-VALIDATE]
+        SCR8[SCR-LICENSE-ISSUE] -->|PF1| T4F[TRG-LICENSE-ISSUE]
+        SCR8 -->|PF6| T4G[TRG-LICENSE-PRINT]
+        SCR0[SCR-MAIN-MENU] -->|ENTER| T4H[TRG-MENU-SELECT]
+    end
 
-    SCR2[SCR-APPLICATION-ENTRY] --> TRG2[TRG-APPLICATION-ENTRY]
-    TRG2 --> AB2[AB-CREATE-APPLICATION]
-
-    SCR3[SCR-ELIGIBILITY-CHECK] --> TRG3[TRG-ELIGIBILITY-RUN]
-    TRG3 --> AB3[AB-CHECK-ELIGIBILITY]
-
-    SCR4[SCR-HISTORY-CHECK] --> TRG4[TRG-HISTORY-RUN]
-    TRG4 --> AB4[AB-CHECK-HISTORY]
-
-    SCR5[SCR-PAYMENT-ENTRY] --> TRG5[TRG-PAYMENT-PROCESS]
-    TRG5 --> AB5[AB-PROCESS-PAYMENT]
-
-    SCR6[SCR-APPROVAL-AUTH1] --> TRG6[TRG-APPROVAL1-SUBMIT]
-    TRG6 --> AB6[AB-RECORD-APPROVAL-1]
-
-    SCR7[SCR-APPROVAL-AUTH2] --> TRG7[TRG-APPROVAL2-SUBMIT]
-    TRG7 --> AB7[AB-RECORD-APPROVAL-2]
-
-    SCR8[SCR-LICENSE-ISSUE] --> TRG8[TRG-LICENSE-ISSUE]
-    TRG8 --> AB8[AB-ISSUE-LICENSE]
-
-    SCR9[SCR-APPLICATION-STATUS] --> TRG9[TRG-STATUS-INQUIRE]
-    TRG9 --> AB9[AB-INQUIRE-APPLICATION-STATUS]
+    T1A --> AB1[AB-CREATE-CANDIDATE]
+    T2A --> AB2[AB-CREATE-APPLICATION]
+    T3A --> AB3[AB-CHECK-ELIGIBILITY]
+    T3B --> AB4[AB-CHECK-HISTORY]
+    T4A --> AB5[AB-PROCESS-PAYMENT]
+    T4C --> AB6[AB-RECORD-APPROVAL-1]
+    T4D --> AB7[AB-RECORD-APPROVAL-2]
+    T4F --> AB8[AB-ISSUE-LICENSE]
+    T3C --> AB9[AB-INQUIRE-APPLICATION-STATUS]
 
     AB1 & AB2 & AB3 & AB4 & AB5 & AB6 & AB7 & AB8 & AB9 --> ENC[(Encyclopedia\nEntities & Views)]
 ```
@@ -246,7 +259,10 @@ Each Action Block operates exclusively through **Views** — never directly on e
 | UPDATE views | `VAPPLICATION-ELIGIBILITY-UPD` | Targeted field updates |
 | LOOKUP views | `VCANDIDATE-ID-LOOKUP` | Key-based lookups |
 | CHECK views | `VHISTORY-CHECK` | Business rule evaluation |
+| SUMMARY views | `VHISTORY-SUMMARY` | Display list / lightweight reads |
+| STATUS views | `VAPPLICATION-STATUS` | Status-only reads for gate checks |
 | RECEIPT views | `VPAYMENT-RECEIPT` | Output/print operations |
+| STATUS-UPD views | `VLICENSE-STATUS-UPD` | Targeted status field updates |
 
 ---
 

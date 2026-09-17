@@ -1,0 +1,84 @@
+DOCUMENTATION UPDATE SUMMARY
+Driver License Issuance System (DLIS) — docs/ directory
+========================================================
+Date    : 2025
+Subject : Reflect current repository state in docs/
+
+
+CHANGES MADE
+============
+
+docs/README.md
+--------------
+- Fixed src/encyclopedia/views/ count: 24 views -> 27 views
+- Fixed src/screens/ count: 9 screen maps -> 10 screen maps
+- Added trigger count annotation: 4 trigger files (.TRG, 19 triggers total)
+- Added mf/ directory tree with all 8 sub-directories and file counts
+- Added odm-from-cagen/ directory tree with all 7 sub-directories
+- Replaced the single-file reports/ entry with a general label
+
+
+docs/01-ARCHITECTURE.md
+------------------------
+- Fixed view count in DATA LAYER diagram: 24 scoped views -> 27 scoped views
+- Rewrote Section 5 (Action Block Call Chain): replaced a flat, inaccurate
+  diagram with one that groups triggers into their four actual source files
+    TRG-CANDIDATE-MAINT.TRG
+    TRG-APPLICATION-ENTRY.TRG
+    TRG-CHECK-AND-STATUS.TRG
+    TRG-PAYMENT-APPROVAL-ISSUE.TRG
+  The new diagram shows all 19 actual trigger names and exposes all PF-key
+  events that invoke each trigger.
+- Added SUMMARY, STATUS, and STATUS-UPD view categories to Section 6
+  (View Layer Architecture), reflecting the actual views present in the
+  VEW files that were absent from the original table.
+
+
+docs/03-SCREEN-NAVIGATION.md
+-----------------------------
+- Reordered Screen Inventory table so SCR-APPLICATION-STATUS appears at
+  its natural option-4 position (was listed last).
+- Added a note documenting options 11-15 (Inquire License, Suspend License,
+  Revoke License, Authority User Maintenance, Fee Schedule Maintenance) that
+  appear in SCR-MAIN-MENU.SCR but are not yet wired in the MENU-ROUTING
+  section of that screen (routing table currently covers options 1-10 only).
+- Added a dashed edge in the navigation flowchart showing the unrouted
+  options 11-15 pointing to a "Routing pending" node.
+
+
+docs/04-ACTION-BLOCK-REFERENCE.md
+-----------------------------------
+- Fixed AB-CREATE-CANDIDATE imports table to match AB-CREATE-CANDIDATE.ACB:
+    Added missing WS-ADDRESS-LINE-2  CHARACTER(50)  No  Additional address line
+    Added missing WS-POSTAL-CODE     CHARACTER(10)  No  Postal / ZIP code
+    Corrected WS-PHONE-NUMBER from Required=Yes -> Required=No (optional)
+    Corrected WS-EMAIL-ADDRESS from Required=Yes -> Required=No (optional)
+
+
+docs/07-DEPLOYMENT-GUIDE.md
+-----------------------------
+- Fixed screen count in artifact reference table: 9 -> 10
+- Fixed trigger count: "20+ triggers" -> "19 triggers total"
+- Fixed total CA Gen source file count: 36 -> 37
+- Renamed artifact section heading to "CA Gen Source (src/)"
+- Added new section "Mainframe Target (mf/)" with per-directory artifact
+  counts for bms, cobol, copybook, csd, db2, jcl, proc sub-directories
+- Added new section "ODM Rule Project (odm-from-cagen/)" with per-directory
+  artifact counts for bom, rules, decision-tables, ruleflows, mainframe,
+  and service sub-directories
+
+
+ROOT CAUSES
+===========
+1. Screen count was understated (SCR-ECHPE screen present in mf/bms/ implied
+   a 10th screen; confirmed by direct file listing of src/screens/).
+2. View count was understated: actual tally is 27 (VCANDIDATE x4,
+   VAPPLICATION x8, VHISTORY x3, VPAYMENT x4, VLICENSE x4,
+   VAUTHORITY-AND-FEES x4).
+3. Trigger call-chain diagram used generic placeholder names rather than
+   the actual trigger identifiers defined in the .TRG source files.
+4. mf/ and odm-from-cagen/ directories existed in the repository but were
+   entirely absent from all docs/ documentation.
+5. AB-CREATE-CANDIDATE.ACB imports four optional fields (ADDRESS-LINE-2,
+   POSTAL-CODE, PHONE-NUMBER, EMAIL-ADDRESS) that were missing or marked
+   required incorrectly in the reference doc.

@@ -10,13 +10,23 @@
 | `SCR-MAIN-MENU` | Main Menu | Menu | Entry point |
 | `SCR-CANDIDATE-MAINT` | Candidate Maintenance | Data Entry | Menu option 1 or 2 |
 | `SCR-APPLICATION-ENTRY` | License Application Entry | Data Entry | Menu option 3 |
+| `SCR-APPLICATION-STATUS` | Application Status Inquiry | Inquiry | Menu option 4 |
 | `SCR-ELIGIBILITY-CHECK` | Eligibility Check | Data Entry | Menu option 5 |
 | `SCR-HISTORY-CHECK` | Driving History Check | Data Entry | Menu option 6 |
 | `SCR-PAYMENT-ENTRY` | Payment Entry | Data Entry | Menu option 7 |
 | `SCR-APPROVAL-AUTH1` | First Authority Approval | Data Entry | Menu option 8 |
 | `SCR-APPROVAL-AUTH2` | Second Authority Approval | Data Entry | Menu option 9 |
 | `SCR-LICENSE-ISSUE` | License Issuance | Data Entry | Menu option 10 |
-| `SCR-APPLICATION-STATUS` | Application Status Inquiry | Inquiry | Menu option 4 |
+
+> **Note — Options 11–15:** The main menu screen (`SCR-MAIN-MENU`) displays five additional options (11–15) for license inquiry, suspension, revocation, authority user maintenance, and fee schedule maintenance. These options are listed on the menu but are **not yet wired in the MENU-ROUTING section** of `SCR-MAIN-MENU.SCR` — the routing table currently covers options 1–10 only. The corresponding screens and action blocks for these functions are defined in the business function decomposition (`BF-LICENSE-INQUIRY`) and will require future routing additions.
+
+| Option | Label | Status |
+|---|---|---|
+| 11 | INQUIRE ISSUED LICENSE | Displayed; routing pending |
+| 12 | SUSPEND LICENSE | Displayed; routing pending |
+| 13 | REVOKE LICENSE | Displayed; routing pending |
+| 14 | AUTHORITY USER MAINTENANCE | Displayed; routing pending |
+| 15 | FEE SCHEDULE MAINTENANCE | Displayed; routing pending |
 
 ---
 
@@ -35,6 +45,7 @@ flowchart TD
     MENU -- Option 8 --> AUTH1[SCR-APPROVAL-AUTH1\nFirst Approval]
     MENU -- Option 9 --> AUTH2[SCR-APPROVAL-AUTH2\nSecond Approval]
     MENU -- Option 10 --> ISSUE[SCR-LICENSE-ISSUE\nLicense Issue]
+    MENU -. Option 11–15 .-> PENDING([Routing pending\nsee note above])
 
     CANDM -- F3 Lookup --> CANDM
     APPE -- F3 Lookup Candidate --> CANDM
