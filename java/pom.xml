@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.dlis</groupId>
+  <artifactId>dlis-parent</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+  <name>Driver License Issuance System - Parent</name>
+  <description>
+    Mainframe Java project for the Driver License Issuance System.
+    Runs on zLinux under IBM WebSphere Application Server Liberty.
+    Transactional integration via CICS/DB2; business logic in Java.
+  </description>
+
+  <modules>
+    <module>dlis-core</module>
+    <module>dlis-cics-bridge</module>
+    <module>dlis-web</module>
+    <module>dlis-ear</module>
+  </modules>
+
+  <properties>
+    <java.version>11</java.version>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- IBM JCICS / WAS Liberty BOM versions (available from IBM Maven repo) -->
+    <ibm.jcics.version>2.0.0</ibm.jcics.version>
+    <liberty.bom.version>23.0.0.9</liberty.bom.version>
+    <jakartaee.version>8.0.0</jakartaee.version>
+    <db2.jdbc.version>11.5.8.0</db2.jdbc.version>
+    <slf4j.version>2.0.9</slf4j.version>
+    <junit.version>5.10.0</junit.version>
+    <mockito.version>5.5.0</mockito.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Jakarta EE 8 (WAS Liberty 23.x) -->
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-api</artifactId>
+        <version>${jakartaee.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- IBM JCICS — CICS Transaction Server Java API -->
+      <dependency>
+        <groupId>com.ibm.cics</groupId>
+        <artifactId>com.ibm.cics.server</artifactId>
+        <version>${ibm.jcics.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- IBM DB2 JDBC Type 4 driver (zLinux) -->
+      <dependency>
+        <groupId>com.ibm.db2</groupId>
+        <artifactId>jcc</artifactId>
+        <version>${db2.jdbc.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Logging -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+
+      <!-- Test -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- Internal modules -->
+      <dependency>
+        <groupId>com.dlis</groupId>
+        <artifactId>dlis-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.dlis</groupId>
+        <artifactId>dlis-cics-bridge</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+</project>

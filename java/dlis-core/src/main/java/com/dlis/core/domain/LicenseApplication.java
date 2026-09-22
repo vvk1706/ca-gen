@@ -1,0 +1,167 @@
+package com.dlis.core.domain;
+
+import java.io.Serializable;
+import java.time.LocalDate;
+
+/**
+ * Domain model for the LICENSE_APPLICATION entity.
+ * Maps to DLIS.LICENSE_APPLICATION in DB2.
+ * Derived from CA Gen encyclopedia entity: LICENSE-APPLICATION.ENT
+ *
+ * Application status lifecycle:
+ *   PE -> EC -> HC -> PP -> PA -> A1 -> A2 -> AP -> IS
+ *                                            \\-> RE (any stage)
+ */
+public class LicenseApplication implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    // --- Status constants ---
+    public static final String STATUS_PENDING          = "PE";
+    public static final String STATUS_ELIG_CHECKED     = "EC";
+    public static final String STATUS_HIST_CHECKED     = "HC";
+    public static final String STATUS_PAYMENT_PENDING  = "PP";
+    public static final String STATUS_PAYMENT_APPROVED = "PA";
+    public static final String STATUS_APPROVAL1_PEND   = "A1";
+    public static final String STATUS_APPROVAL2_PEND   = "A2";
+    public static final String STATUS_APPROVED         = "AP";
+    public static final String STATUS_REJECTED         = "RE";
+    public static final String STATUS_ISSUED           = "IS";
+
+    public static final String CHECK_PASS    = "P";
+    public static final String CHECK_FAIL    = "F";
+    public static final String CHECK_UNCHECKED = "U";
+
+    public static final String PAYMENT_PAID    = "P";
+    public static final String PAYMENT_UNPAID  = "U";
+    public static final String PAYMENT_WAIVED  = "W";
+
+    public static final String DECISION_APPROVED = "A";
+    public static final String DECISION_REJECTED = "R";
+
+    private Long      applicationId;
+    private Long      candidateId;
+    private String    licenseType;           // L, P, O
+    private LocalDate applicationDate;
+    private String    applicationStatus;
+
+    private String    eligibilityChkStatus;
+    private LocalDate eligibilityChkDate;
+    private String    eligibilityChkNotes;
+
+    private String    historyChkStatus;
+    private LocalDate historyChkDate;
+    private String    historyChkNotes;
+
+    private String    paymentStatus;
+    private String    paymentReference;
+
+    private String    approval1Status;
+    private String    approval1Authority;
+    private LocalDate approval1Date;
+    private String    approval1Notes;
+
+    private String    approval2Status;
+    private String    approval2Authority;
+    private LocalDate approval2Date;
+    private String    approval2Notes;
+
+    private String    rejectionReason;
+    private LocalDate createdDate;
+    private LocalDate lastUpdatedDate;
+    private String    createdBy;
+    private String    lastUpdatedBy;
+
+    public LicenseApplication() {}
+
+    // ---- State query helpers ----
+
+    public boolean isEligibilityPassed()   { return CHECK_PASS.equals(eligibilityChkStatus); }
+    public boolean isHistoryPassed()       { return CHECK_PASS.equals(historyChkStatus); }
+    public boolean isPaymentComplete()     { return PAYMENT_PAID.equals(paymentStatus) || PAYMENT_WAIVED.equals(paymentStatus); }
+    public boolean isApproval1Complete()   { return DECISION_APPROVED.equals(approval1Status); }
+    public boolean isApproval2Complete()   { return DECISION_APPROVED.equals(approval2Status); }
+    public boolean isFullyApproved()       { return STATUS_APPROVED.equals(applicationStatus); }
+    public boolean isIssued()              { return STATUS_ISSUED.equals(applicationStatus); }
+    public boolean isRejected()            { return STATUS_REJECTED.equals(applicationStatus); }
+
+    // ---- Getters / Setters ----
+
+    public Long getApplicationId()                      { return applicationId; }
+    public void setApplicationId(Long v)                { this.applicationId = v; }
+
+    public Long getCandidateId()                        { return candidateId; }
+    public void setCandidateId(Long v)                  { this.candidateId = v; }
+
+    public String getLicenseType()                      { return licenseType; }
+    public void setLicenseType(String v)                { this.licenseType = v; }
+
+    public LocalDate getApplicationDate()               { return applicationDate; }
+    public void setApplicationDate(LocalDate v)         { this.applicationDate = v; }
+
+    public String getApplicationStatus()                { return applicationStatus; }
+    public void setApplicationStatus(String v)          { this.applicationStatus = v; }
+
+    public String getEligibilityChkStatus()             { return eligibilityChkStatus; }
+    public void setEligibilityChkStatus(String v)       { this.eligibilityChkStatus = v; }
+
+    public LocalDate getEligibilityChkDate()            { return eligibilityChkDate; }
+    public void setEligibilityChkDate(LocalDate v)      { this.eligibilityChkDate = v; }
+
+    public String getEligibilityChkNotes()              { return eligibilityChkNotes; }
+    public void setEligibilityChkNotes(String v)        { this.eligibilityChkNotes = v; }
+
+    public String getHistoryChkStatus()                 { return historyChkStatus; }
+    public void setHistoryChkStatus(String v)           { this.historyChkStatus = v; }
+
+    public LocalDate getHistoryChkDate()                { return historyChkDate; }
+    public void setHistoryChkDate(LocalDate v)          { this.historyChkDate = v; }
+
+    public String getHistoryChkNotes()                  { return historyChkNotes; }
+    public void setHistoryChkNotes(String v)            { this.historyChkNotes = v; }
+
+    public String getPaymentStatus()                    { return paymentStatus; }
+    public void setPaymentStatus(String v)              { this.paymentStatus = v; }
+
+    public String getPaymentReference()                 { return paymentReference; }
+    public void setPaymentReference(String v)           { this.paymentReference = v; }
+
+    public String getApproval1Status()                  { return approval1Status; }
+    public void setApproval1Status(String v)            { this.approval1Status = v; }
+
+    public String getApproval1Authority()               { return approval1Authority; }
+    public void setApproval1Authority(String v)         { this.approval1Authority = v; }
+
+    public LocalDate getApproval1Date()                 { return approval1Date; }
+    public void setApproval1Date(LocalDate v)           { this.approval1Date = v; }
+
+    public String getApproval1Notes()                   { return approval1Notes; }
+    public void setApproval1Notes(String v)             { this.approval1Notes = v; }
+
+    public String getApproval2Status()                  { return approval2Status; }
+    public void setApproval2Status(String v)            { this.approval2Status = v; }
+
+    public String getApproval2Authority()               { return approval2Authority; }
+    public void setApproval2Authority(String v)         { this.approval2Authority = v; }
+
+    public LocalDate getApproval2Date()                 { return approval2Date; }
+    public void setApproval2Date(LocalDate v)           { this.approval2Date = v; }
+
+    public String getApproval2Notes()                   { return approval2Notes; }
+    public void setApproval2Notes(String v)             { this.approval2Notes = v; }
+
+    public String getRejectionReason()                  { return rejectionReason; }
+    public void setRejectionReason(String v)            { this.rejectionReason = v; }
+
+    public LocalDate getCreatedDate()                   { return createdDate; }
+    public void setCreatedDate(LocalDate v)             { this.createdDate = v; }
+
+    public LocalDate getLastUpdatedDate()               { return lastUpdatedDate; }
+    public void setLastUpdatedDate(LocalDate v)         { this.lastUpdatedDate = v; }
+
+    public String getCreatedBy()                        { return createdBy; }
+    public void setCreatedBy(String v)                  { this.createdBy = v; }
+
+    public String getLastUpdatedBy()                    { return lastUpdatedBy; }
+    public void setLastUpdatedBy(String v)              { this.lastUpdatedBy = v; }
+}

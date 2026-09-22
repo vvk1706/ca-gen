@@ -1,0 +1,189 @@
+java/ — Driver License Issuance System (DLIS) — Mainframe Java Project
+
+57 files across a Maven 4-module EE project targeting IBM WebSphere Application
+Server Liberty on zLinux (s390x / LinuxONE), with CICS/DB2 for the transactional
+layer and Java for all business logic.
+
+─────────────────────────────────────────────────────────────────────────────────
+ARCHITECTURE
+─────────────────────────────────────────────────────────────────────────────────
+
+  REST Callers (HTTP/S)           CICS Callers (EXEC CICS LINK)
+       │                                        │
+  JAX-RS Resources                  JCICS Programs (COMMAREA)
+  (dlis-web)                        (dlis-cics-bridge)
+       │                                        │
+       └──────────────┬─────────────────────────┘
+                      │
+          EJB Service Beans  (dlis-core / @Stateless)
+          @TransactionAttribute(REQUIRED) — JTA/XA
+                      │
+          JDBC DAOs → DB2 LUW 11.5 Type 4 (zLinux)
+                 DLIS schema — 7 tables
+
+
+─────────────────────────────────────────────────────────────────────────────────
+MODULE BREAKDOWN
+─────────────────────────────────────────────────────────────────────────────────
+
+Module              Contents
+──────────────────  ────────────────────────────────────────────────────────────
+dlis-core           7 domain POJOs, 4 service interfaces, 4 EJB implementations,
+                    7 DAO interfaces, 3 JDBC DAO impls, DB2 DDL (3 SQL files),
+                    unit tests (CandidateServiceEjbTest, ApplicationServiceEjbTest)
+
+dlis-cics-bridge    BaseCommarea + 2 COMMAREA classes (CandidateCommarea,
+                    ApplicationCommarea), 3 JCICS Executable programs
+                    (DLISCAND, DLISAPPL, DLISPAAP), DLISCSD.csd,
+                    DLISLRTY.jvmprofile
+
+dlis-web            DlisApplication (JAX-RS), CandidateResource,
+                    ApplicationResource, PaymentApprovalResource,
+                    web.xml, ibm-web-ext.xml
+
+dlis-ear            EAR assembly, application.xml, ibm-application-bnd.xml,
+                    Liberty server.xml
+
+
+─────────────────────────────────────────────────────────────────────────────────
+KEY ARTEFACTS
+─────────────────────────────────────────────────────────────────────────────────
+
+Artefact                                  Purpose
+────────────────────────────────────────  ───────────────────────────────────────
+dlis-ear/src/main/liberty/config/         Liberty config: features, DB2 XA
+  server.xml                              datasource jdbc/dlisDS, security roles,
+                                          transaction timeout
+
+Dockerfile                                Multi-stage: Maven build →
+                                          icr.io/appcafe/websphere-liberty:
+                                          23.x-full-java11-openj9-ubi-s390x
+
+build.sh                                  build / test / docker / push /
+                                          db2-deploy / cics-install
+
+dlis-cics-bridge/src/main/cics/           DFHCSDUP: JVMSERVER, 3 PROGRAM defs,
+  DLISCSD.csd                             3 TRANSACTION defs,
+                                          DB2ENTRY + DB2TRAN bindings
+
+dlis-cics-bridge/src/main/cics/           Liberty JVM Server profile for CICS TS
+  DLISLRTY.jvmprofile                     (heap, GC, Semeru JDK 11 s390x)
+
+dlis-core/src/main/resources/db2/         All 7 tables with constraints for
+  DLIS-CREATE-TABLES.sql                  DB2 z/OS v12+ and DB2 LUW 11.5
+
+dlis-core/src/main/resources/db2/         All indexes (candidate, application,
+  DLIS-CREATE-INDEXES.sql                 history, license, payment, fee, auth)
+
+dlis-core/src/main/resources/db2/         Fee schedule seed data (9 rows for
+  DLIS-SEED-DATA.sql                      L/P/O x IF/RF/LF fee types)
+
+
+─────────────────────────────────────────────────────────────────────────────────
+CA GEN → JAVA MAPPING (1:1)
+─────────────────────────────────────────────────────────────────────────────────
+
+CA Gen Action Block          Java EJB Method
+───────────────────────────  ──────────────────────────────────────────────────
+AB-CREATE-CANDIDATE          CandidateServiceEjb.createCandidate()
+AB-CREATE-APPLICATION        ApplicationServiceEjb.createApplication()
+AB-CHECK-ELIGIBILITY         ApplicationServiceEjb.checkEligibility()
+AB-CHECK-HISTORY             ApplicationServiceEjb.checkHistory()
+AB-INQUIRE-APP-STATUS        ApplicationServiceEjb.inquireStatus()
+AB-PROCESS-PAYMENT           PaymentServiceEjb.processPayment()
+AB-RECORD-APPROVAL-1         ApprovalServiceEjb.recordApproval1()
+AB-RECORD-APPROVAL-2         ApprovalServiceEjb.recordApproval2()
+AB-ISSUE-LICENSE             ApprovalServiceEjb.issueLicense()
+
+
+─────────────────────────────────────────────────────────────────────────────────
+REST API ENDPOINTS
+─────────────────────────────────────────────────────────────────────────────────
+
+Method  Path                                       Service call
+──────  ─────────────────────────────────────────  ──────────────────────────────
+POST    /dlis/api/v1/candidates                    createCandidate
+GET     /dlis/api/v1/candidates/{id}               findById
+GET     /dlis/api/v1/candidates?idNumber=...       findByIdNumber
+POST    /dlis/api/v1/applications                  createApplication
+GET     /dlis/api/v1/applications/{id}             inquireStatus
+POST    /dlis/api/v1/applications/{id}/
+          eligibility-check                        checkEligibility
+POST    /dlis/api/v1/applications/{id}/
+          history-check                            checkHistory
+POST    /dlis/api/v1/applications/{id}/payment     processPayment
+POST    /dlis/api/v1/applications/{id}/approval1   recordApproval1
+POST    /dlis/api/v1/applications/{id}/approval2   recordApproval2
+POST    /dlis/api/v1/applications/{id}/issue       issueLicense
+
+
+─────────────────────────────────────────────────────────────────────────────────
+CICS TRANSACTIONS
+─────────────────────────────────────────────────────────────────────────────────
+
+Tran  Program    Java class                              Function
+────  ─────────  ──────────────────────────────────────  ───────────────────────
+CAND  DLISCAND   com.dlis.cics.program.DlisCandProgram   Candidate maintenance
+APPL  DLISAPPL   com.dlis.cics.program.DlisApplProgram   Application workflow
+PAAP  DLISPAAP   com.dlis.cics.program.DlisPayApprProgram Payment + Approval + Issue
+
+Sub-functions dispatched via tranCode field in COMMAREA:
+  CAND/CADD — create candidate      CINQ — inquire candidate
+  APLN      — create application    APEC — eligibility check
+  APHC      — history check         APIS — status inquiry
+  PAYM      — process payment       APR1 — approval 1
+  APR2      — approval 2            ISSU — issue license
+
+
+─────────────────────────────────────────────────────────────────────────────────
+DB2 TABLES (schema: DLIS)
+─────────────────────────────────────────────────────────────────────────────────
+
+Table                  PK                  Key relationships
+─────────────────────  ──────────────────  ──────────────────────────────────────
+CANDIDATE              CANDIDATE_ID        —
+LICENSE_APPLICATION    APPLICATION_ID      FK → CANDIDATE
+DRIVING_HISTORY        HISTORY_ID          FK → CANDIDATE
+ISSUED_LICENSE         LICENSE_ID          FK → LICENSE_APPLICATION, CANDIDATE
+PAYMENT                PAYMENT_ID          FK → LICENSE_APPLICATION, CANDIDATE
+LICENSE_FEE_SCHEDULE   FEE_SCHEDULE_ID     —
+AUTHORITY_USER         AUTHORITY_USER_ID   —
+
+
+─────────────────────────────────────────────────────────────────────────────────
+ZLINUX / WAS LIBERTY DEPLOYMENT NOTES
+─────────────────────────────────────────────────────────────────────────────────
+
+Target platforms:
+  - IBM z16 / LinuxONE running native Linux (s390x)
+  - z/OS Container Extensions (zCX) on z16
+  - Red Hat OpenShift on IBM Z (OCP s390x)
+
+Liberty base image:
+  icr.io/appcafe/websphere-liberty:23.0.0.9-full-java11-openj9-ubi-s390x
+
+JDK:
+  IBM Semeru Runtime Certified Edition 11 (s390x / OpenJ9)
+
+DB2 driver:
+  db2jcc4.jar (Type 4) — mounted as shared library at
+  /opt/ibm/wlp/usr/shared/resources/db2jcc/
+
+CICS integration:
+  CICS TS 6.x Liberty JVM Server (DLISLRTY)
+  JVMPROFILE: DLISLRTY.jvmprofile (USS filesystem)
+  Programs installed via: DFHCSDUP INSTALL GROUP(DLISGRP)
+  DB2 attachment: DB2ENTRY(DLISDB2) → DB2ID(DLISDB)
+
+Environment variables (override via K8s secrets):
+  DB2_HOST, DB2_PORT, DB2_DBNAME, DB2_USER, DB2_PASSWORD
+  DLIS_KEYSTORE_PASSWORD
+
+Ports:
+  9080 (HTTP), 9443 (HTTPS/TLS)
+
+Build:
+  cd java && ./build.sh          — Maven build (produces dlis.ear)
+  ./build.sh docker              — Build s390x container image
+  ./build.sh db2-deploy          — Run DDL against target DB2
+  ./build.sh cics-install        — Reminder to submit DFHCSDUP batch job

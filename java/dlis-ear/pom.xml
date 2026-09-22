@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.dlis</groupId>
+    <artifactId>dlis-parent</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>dlis-ear</artifactId>
+  <packaging>ear</packaging>
+  <name>DLIS EAR — Enterprise Archive for WAS Liberty</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.dlis</groupId>
+      <artifactId>dlis-web</artifactId>
+      <version>${project.version}</version>
+      <type>war</type>
+    </dependency>
+    <dependency>
+      <groupId>com.dlis</groupId>
+      <artifactId>dlis-cics-bridge</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.dlis</groupId>
+      <artifactId>dlis-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>dlis</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-ear-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <version>8</version>
+          <defaultLibBundleDir>lib</defaultLibBundleDir>
+          <modules>
+            <webModule>
+              <groupId>com.dlis</groupId>
+              <artifactId>dlis-web</artifactId>
+              <contextRoot>/dlis</contextRoot>
+            </webModule>
+          </modules>
+          <applicationXml>src/main/application/META-INF/application.xml</applicationXml>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

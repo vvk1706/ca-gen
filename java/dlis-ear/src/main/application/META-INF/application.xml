@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                                 http://xmlns.jcp.org/xml/ns/javaee/application_8.xsd"
+             version="8">
+
+  <display-name>Driver License Issuance System</display-name>
+  <description>DLIS — mainframe Java EE application on WAS Liberty / zLinux</description>
+
+  <module>
+    <web>
+      <web-uri>dlis-web.war</web-uri>
+      <context-root>/dlis</context-root>
+    </web>
+  </module>
+
+  <security-role>
+    <description>Front-office licensing officers</description>
+    <role-name>DLIS_OFFICER</role-name>
+  </security-role>
+
+  <security-role>
+    <description>Authorising officers (approval level 1 and 2)</description>
+    <role-name>DLIS_AUTHORITY</role-name>
+  </security-role>
+
+  <security-role>
+    <description>System administrators</description>
+    <role-name>DLIS_ADMIN</role-name>
+  </security-role>
+
+</application>

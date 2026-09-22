@@ -1,0 +1,68 @@
+
+create dicrectory java and build a mainframe java project out of current ca gen projects. mainframe project needs to include all necessary zLinux and WAS and Java artefacts. please use CICS/DB2 for transactional part and Java for business logic. please do not create documentation at this time
+
+Update Todo List
+Edit
+Analyze CA Gen artifacts — done, full domain model captured
+Create java/ directory structure (Maven multi-module: parent POM, core module, cics-bridge module, web module)
+Create Maven parent POM and module POMs
+Create DB2 DDL (reuse + extend for Java datasource)
+Create Java domain model (entities/POJOs)
+Create Java service layer (business logic from action blocks)
+Create CICS bridge — JCA/JCICS resource adaptor + COMMAREA classes
+Create CICS transaction programs (Java CICS programs via JCICS)
+Create DB2 DAO layer (JDBC with zLinux DB2 driver)
+Create WAS deployment descriptors (web.xml, ibm-web-ext.xml, ibm-application-ext.xml)
+Create EJB transaction wrappers
+Create JCA ra.xml / WAS resource adapter config
+Create REST API (JAX-RS) for external callers
+Create Dockerfile / Liberty server.xml for zLinux WAS Liberty
+Create build scripts (Maven wrapper, build.sh)
+
+Let me start by exploring the current CA Gen project to understand what we're working with.
+
+Now let me read the key source files to understand the full domain model:
+
+Now I have a complete picture. Let me plan and build the Java project structure:
+
+Now let me build the entire Java project. I'll create all files in parallel batches:
+
+Now create all Java domain model POJOs and DB2 DDL in parallel:
+
+Now creating all domain model POJOs, all in parallel:
+
+Now create service result classes and service interfaces + implementations:
+
+Now create all service implementations and DAO layer:
+
+Now create the full JDBC DAO implementations:
+
+Now create all EJB service implementations:
+
+Now create the CICS bridge — COMMAREA classes and JCICS programs:
+
+Now create all JCICS transaction programs:
+
+Now create the REST API layer, WAS Liberty server.xml, and deployment descriptors:
+
+Now create all WAS Liberty / deployment descriptors, server.xml, Dockerfile, and EAR META-INF:
+
+Now create the Dockerfile, build script, CDI beans.xml, and CICS program definition:
+
+Now create unit tests and make the build script executable:
+
+Now let's verify the complete directory structure was created correctly:
+
+All 56 files are in place. Now fix the one issue: SupportingDaos.java
+ has package-private interfaces but they need to be public,
+  and the DAO implementations need to implement them. 
+  Let me also check the SupportingDaos.java — it's a single file 
+  with two interface declarations used by the impls.
+ Let me move them to separate proper public files:
+
+Now delete the old combined file and replace it with a redirect/delete note — actually just overwrite it with a comment:
+
+Now run a final structure check and count:
+
+The todo list tracking is complete. The project is fully built. Let me do a final structural verification:
+

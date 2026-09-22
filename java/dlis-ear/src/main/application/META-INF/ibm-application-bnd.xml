@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application-bnd
+    xmlns="http://websphere.ibm.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://websphere.ibm.com/xml/ns/javaee
+                        http://websphere.ibm.com/xml/ns/javaee/ibm-application-bnd_1_2.xsd"
+    version="1.2">
+
+  <!--
+    IBM WebSphere Application Server application binding.
+    Binds security roles to LDAP / z/OS SAF groups.
+  -->
+
+  <security-role name="DLIS_OFFICER">
+    <group name="DlisOfficers" access-id="group:defaultWIMFileBasedRealm/DlisOfficers"/>
+  </security-role>
+
+  <security-role name="DLIS_AUTHORITY">
+    <group name="DlisAuthority" access-id="group:defaultWIMFileBasedRealm/DlisAuthority"/>
+  </security-role>
+
+  <security-role name="DLIS_ADMIN">
+    <group name="DlisAdmin" access-id="group:defaultWIMFileBasedRealm/DlisAdmin"/>
+  </security-role>
+
+</application-bnd>

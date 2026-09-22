@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  JVM Server Profile Overlay for DLIS Liberty JVM Server (DLISLRTY)
+  Place at: /var/cics/JVMProfiles/DLISLRTY.jvmprofile on the z/OS USS filesystem
+
+  Key settings for CICS Liberty JVM Server:
+    - s390x optimized IBM Semeru JDK 11
+    - WAS Liberty server config points to dlis-ear
+    - DB2 JCC in shared lib path
+-->
+<jvmserver>
+
+  <!-- IBM Semeru Runtime Certified Edition — s390x -->
+  <jvm-location>/usr/lpp/semeru/jdk/bin/java</jvm-location>
+
+  <!-- Liberty installation -->
+  <liberty-home>/usr/lpp/liberty/wlp</liberty-home>
+  <liberty-server-name>DLISLRTY</liberty-server-name>
+
+  <!-- JVM heap sizes (tune for your LPAR) -->
+  <initial-heap-size>256M</initial-heap-size>
+  <max-heap-size>1024M</max-heap-size>
+
+  <!-- GC policy — gencon is generally optimal for transactional workloads -->
+  <jvm-options>
+    <option>-Xgcpolicy:gencon</option>
+    <option>-Xms256m</option>
+    <option>-Xmx1024m</option>
+    <option>-Djava.net.preferIPv4Stack=true</option>
+    <option>-Dfile.encoding=UTF-8</option>
+    <!-- Disable verbose GC in production — enable for tuning -->
+    <!-- <option>-verbose:gc</option> -->
+  </jvm-options>
+
+</jvmserver>

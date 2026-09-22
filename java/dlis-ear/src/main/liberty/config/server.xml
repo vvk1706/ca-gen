@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="DLIS - Driver License Issuance System">
+
+  <!--
+    IBM WebSphere Application Server Liberty
+    Target platform: zLinux (s390x) — IBM z16 under z/OS Container Extensions (zCX)
+    or native Linux on IBM z (LinuxONE).
+
+    Feature set: Jakarta EE 8 + CICS TS 6.x Java + DB2 JCC
+  -->
+
+  <featureManager>
+    <!-- Jakarta EE 8 Web Profile -->
+    <feature>webProfile-8.0</feature>
+    <!-- JAX-RS 2.1 REST -->
+    <feature>jaxrs-2.1</feature>
+    <!-- CDI 2.0 -->
+    <feature>cdi-2.0</feature>
+    <!-- EJB Lite 3.2 (stateless beans, transaction management) -->
+    <feature>ejbLite-3.2</feature>
+    <!-- JTA 1.3 (distributed XA transactions over DB2) -->
+    <feature>transaction-1.2</feature>
+    <!-- JDBC 4.2 (DB2 LUW / z/OS Type 4 driver) -->
+    <feature>jdbc-4.2</feature>
+    <!-- JSON-B 1.0 (JSON binding for REST) -->
+    <feature>jsonb-1.0</feature>
+    <!-- JSON-P 1.1 -->
+    <feature>jsonp-1.1</feature>
+    <!-- CICS TS Liberty feature (required on CICS Liberty JVM server) -->
+    <!-- <feature>cicsts:security-1.0</feature> -->
+    <!-- SSL/TLS for mutual auth -->
+    <feature>ssl-1.0</feature>
+    <!-- Monitor for health checks -->
+    <feature>monitor-1.0</feature>
+  </featureManager>
+
+  <!-- ─── HTTP Connector ─────────────────────────────────────────────── -->
+  <httpEndpoint id="defaultHttpEndpoint"
+                host="*"
+                httpPort="9080"
+                httpsPort="9443"/>
+
+  <!-- ─── Keystore (update paths for your zLinux deployment) ────────── -->
+  <keyStore id="defaultKeyStore"
+            location="${server.config.dir}/resources/security/dlis-keystore.p12"
+            password="${env.DLIS_KEYSTORE_PASSWORD}"
+            type="PKCS12"/>
+
+  <!-- ─── DB2 JCC XA DataSource ──────────────────────────────────────── -->
+  <!--
+    DB2 for z/OS endpoint — update serverName, portNumber, databaseName
+    to match your z/OS LPAR.  The jdbcDriver references the IBM JCC jar
+    shipped with WAS Liberty or provided via a shared library.
+  -->
+  <library id="db2JccLib">
+    <fileset dir="${shared.resource.dir}/db2jcc" includes="db2jcc4.jar"/>
+  </library>
+
+  <dataSource id="dlisDS"
+              jndiName="jdbc/dlisDS"
+              type="javax.sql.XADataSource">
+    <jdbcDriver libraryRef="db2JccLib"/>
+    <properties.db2.jcc
+      serverName="${env.DB2_HOST}"
+      portNumber="${env.DB2_PORT}"
+      databaseName="${env.DB2_DBNAME}"
+      currentSchema="DLIS"
+      driverType="4"
+      sslConnection="true"
+      user="${env.DB2_USER}"
+      password="${env.DB2_PASSWORD}"
+      fullyMaterializeLobData="false"
+      progressiveStreaming="2"/>
+    <connectionManager
+      maxPoolSize="20"
+      minPoolSize="2"
+      connectionTimeout="30s"
+      maxIdleTime="120s"
+      purgePolicy="EntirePool"
+      agedTimeout="0"/>
+  </dataSource>
+
+  <!-- ─── Application ────────────────────────────────────────────────── -->
+  <enterpriseApplication id="dlis"
+                         location="dlis.ear"
+                         name="dlis">
+    <application-bnd>
+      <security-role name="DLIS_OFFICER">
+        <group name="DlisOfficers"/>
+      </security-role>
+      <security-role name="DLIS_AUTHORITY">
+        <group name="DlisAuthority"/>
+      </security-role>
+      <security-role name="DLIS_ADMIN">
+        <group name="DlisAdmin"/>
+      </security-role>
+    </application-bnd>
+  </enterpriseApplication>
+
+  <!-- ─── Logging ────────────────────────────────────────────────────── -->
+  <logging
+    traceSpecification="com.dlis.*=all:*=info"
+    messageFormat="ENHANCED"
+    maxFileSize="50"
+    maxFiles="5"/>
+
+  <!-- ─── Transaction manager ────────────────────────────────────────── -->
+  <transaction
+    totalTranLifetimeTimeout="120s"
+    clientInactivityTimeout="30s"/>
+
+</server>

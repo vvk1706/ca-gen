@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.dlis</groupId>
+    <artifactId>dlis-parent</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>dlis-cics-bridge</artifactId>
+  <packaging>jar</packaging>
+  <name>DLIS CICS Bridge — JCICS Programs and COMMAREA</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.dlis</groupId>
+      <artifactId>dlis-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.platform</groupId>
+      <artifactId>jakarta.jakartaee-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.cics</groupId>
+      <artifactId>com.ibm.cics.server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.db2</groupId>
+      <artifactId>jcc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+  </dependencies>
+
+</project>
