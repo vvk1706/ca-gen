@@ -1,0 +1,49 @@
+
+build comprehensive documentation for the project in java directory. put the documentation into directory java/docs. pay attention on extracting and documenting business logic and providing api specifications as well as to the deployment guide for zLinux
+
+Let me start by exploring the project structure to understand what we're working with.
+
+Sub agent  
+Read all Java source files in the java directory and return their full contents. Read these files:
+
+Now let me read the remaining truncated content from the subagent output, and then read the actual source files directly for the REST endpoints, CICS programs, and DAO implementations to get precise details.
+
+Now I have all the information needed. Let me create comprehensive documentation.
+
+Update Todo List
+Edit
+Create java/docs directory and write comprehensive documentation
+Write README.md (project overview)
+Write architecture.md (system architecture)
+Write business-logic.md (business rules and workflows)
+Write api-specification.md (REST and CICS API specs)
+Write data-model.md (DB schema and domain model)
+Write deployment-guide-zlinux.md (zLinux deployment guide
+
+please update documentation created considering that candidates are citizens of queensland, australia
+
+Let me review all the documentation files to identify every place that needs updating for Queensland, Australia context.
+
+Now I have a clear picture of all the changes needed. The key updates across all files are:
+
+README/overview — mention Queensland, Australia context
+business-logic.md — currency USD → AUD; fee amounts stay as-is (data-driven); mention ID_NUMBER = Australian Driver Licence Number or equivalent QLD ID
+api-specification.md — example JSON: city → Brisbane/Gold Coast/etc, stateProvince → Queensland, postalCode → 4xxx, country → AU, phone → +61, idNumber format → QLD format
+data-model.md — currency default USD → AUD, CURRENCY_CODE note, STATE_PROVINCE note, COUNTRY note
+deployment-guide-zlinux.md — keytool dname C=ZA → C=AU, ST=State → ST=Queensland
+
+Now update business-logic.md — currency USD → AUD, and add Queensland context note to the candidate section:
+
+Now update api-specification.md — both example JSON payloads (POST and GET candidate):
+
+Now update data-model.md — ID_NUMBER description, STATE_PROVINCE, COUNTRY, POSTAL_CODE, currency default:
+
+Now update deployment-guide-zlinux.md — the two keytool dname examples where C=ZA and generic ST=State appear:
+
+Now update the smoke test in deployment-guide-zlinux.md to use Queensland addresses:
+
+
+please add above summary of changes applied to the file reports/09-SUMMARY-JAVA-PROJECT-DOCS.TXT delimiting from already existing text with "QLD context introduced" delimiter
+
+Done. The QLD context change log has been appended to [`reports/09-SUMMARY-JAVA-PROJECT-DOCS.TXT`](reports/09-SUMMARY-JAVA-PROJECT-DOCS.TXT), separated from the original content by the `QLD context introduced` delimiter. The file now has two clearly delimited sections: the original documentation inventory, followed by the per-file breakdown of every Queensland-related change.
+

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.dlis</groupId>
+  <artifactId>dlis-modernisation</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>DLIS — Modernisation (Quarkus Microservices)</name>
+  <description>
+    Microservices decomposition of the DLIS monolith targeting
+    Red Hat OpenShift on IBM Z / LinuxONE (s390x / zLinux).
+    Lift-and-shift portable to any OCI-compliant x86 Kubernetes cluster.
+  </description>
+
+  <modules>
+    <module>dlis-common</module>
+    <module>dlis-candidate-svc</module>
+    <module>dlis-application-svc</module>
+    <module>dlis-payment-svc</module>
+    <module>dlis-approval-svc</module>
+  </modules>
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Quarkus platform — latest LTS stream certified on OCP 4.x / s390x -->
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.version>3.8.4</quarkus.platform.version>
+
+    <!-- DB2 JCC driver — matches DB2 LUW 11.5 / z/OS v12+ -->
+    <db2.jcc.version>11.5.9.0</db2.jcc.version>
+
+    <!-- Testing -->
+    <junit.version>5.10.2</junit.version>
+    <mockito.version>5.11.0</mockito.version>
+
+    <!-- Maven plugins -->
+    <quarkus.maven.plugin.version>${quarkus.platform.version}</quarkus.maven.plugin.version>
+    <maven.surefire.version>3.2.5</maven.surefire.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Quarkus BOM — manages all Quarkus extension versions -->
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>${quarkus.platform.artifact-id}</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- Shared domain module -->
+      <dependency>
+        <groupId>com.dlis</groupId>
+        <artifactId>dlis-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- DB2 JCC — sourced from Maven Central or internal Nexus -->
+      <dependency>
+        <groupId>com.ibm.db2</groupId>
+        <artifactId>jcc</artifactId>
+        <version>${db2.jcc.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Quarkus build plugin — used in each service module -->
+        <plugin>
+          <groupId>${quarkus.platform.group-id}</groupId>
+          <artifactId>quarkus-maven-plugin</artifactId>
+          <version>${quarkus.maven.plugin.version}</version>
+          <extensions>true</extensions>
+          <executions>
+            <execution>
+              <goals>
+                <goal>build</goal>
+                <goal>generate-code</goal>
+                <goal>generate-code-tests</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.version}</version>
+          <configuration>
+            <systemPropertyVariables>
+              <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            </systemPropertyVariables>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

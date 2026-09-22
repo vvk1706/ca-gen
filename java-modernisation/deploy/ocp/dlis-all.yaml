@@ -1,0 +1,414 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# DLIS Microservices — OpenShift / Kubernetes Manifests
+# Namespace: dlis
+# Platform:  Red Hat OpenShift 4.14+ on IBM Z / LinuxONE (s390x)
+#
+# Apply with:
+#   oc apply -f deploy/ocp/
+#
+# Secret (DB2_PASSWORD) must be created separately — see docs/openshift-zlinux.md
+# ──────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dlis
+  labels:
+    app.kubernetes.io/managed-by: oc
+---
+# ──────────────────────────────────────────────────────────────────────────────
+# ConfigMap — shared DB2 and service-discovery config (non-sensitive)
+# ──────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dlis-config
+  namespace: dlis
+data:
+  DB2_HOST:              "db2.dlis.internal"
+  DB2_PORT:              "50000"
+  DB2_DBNAME:            "DLISDB"
+  DB2_USER:              "dlisapp"
+  LOG_JSON:              "true"
+  CANDIDATE_SVC_HOST:    "dlis-candidate-svc"
+  CANDIDATE_SVC_PORT:    "8080"
+  APPLICATION_SVC_HOST:  "dlis-application-svc"
+  APPLICATION_SVC_PORT:  "8080"
+---
+# ──────────────────────────────────────────────────────────────────────────────
+# Secret — DB2 credentials (placeholder — populate before apply)
+# In production: use sealed-secrets, HashiCorp Vault, or OCP Secrets Manager
+# ──────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dlis-db2-secret
+  namespace: dlis
+type: Opaque
+stringData:
+  DB2_PASSWORD: "CHANGE_ME"   # <-- replace before applying
+---
+# ══════════════════════════════════════════════════════════════════════════════
+# CANDIDATE SERVICE
+# ══════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dlis-candidate-svc
+  namespace: dlis
+  labels:
+    app: dlis-candidate-svc
+    version: "2.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dlis-candidate-svc
+  template:
+    metadata:
+      labels:
+        app: dlis-candidate-svc
+        version: "2.0.0"
+    spec:
+      # Toleration for s390x nodes (tainted in mixed-arch clusters)
+      tolerations:
+        - key: "arch"
+          operator: "Equal"
+          value: "s390x"
+          effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/arch: s390x
+      containers:
+        - name: dlis-candidate-svc
+          image: IMAGE_REGISTRY/dlis/dlis-candidate-svc:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: dlis-config
+            - secretRef:
+                name: dlis-db2-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dlis-candidate-svc
+  namespace: dlis
+  labels:
+    app: dlis-candidate-svc
+spec:
+  selector:
+    app: dlis-candidate-svc
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dlis-candidate-svc
+  namespace: dlis
+spec:
+  to:
+    kind: Service
+    name: dlis-candidate-svc
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+# ══════════════════════════════════════════════════════════════════════════════
+# APPLICATION SERVICE
+# ══════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dlis-application-svc
+  namespace: dlis
+  labels:
+    app: dlis-application-svc
+    version: "2.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dlis-application-svc
+  template:
+    metadata:
+      labels:
+        app: dlis-application-svc
+        version: "2.0.0"
+    spec:
+      tolerations:
+        - key: "arch"
+          operator: "Equal"
+          value: "s390x"
+          effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/arch: s390x
+      containers:
+        - name: dlis-application-svc
+          image: IMAGE_REGISTRY/dlis/dlis-application-svc:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: dlis-config
+            - secretRef:
+                name: dlis-db2-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dlis-application-svc
+  namespace: dlis
+  labels:
+    app: dlis-application-svc
+spec:
+  selector:
+    app: dlis-application-svc
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dlis-application-svc
+  namespace: dlis
+spec:
+  to:
+    kind: Service
+    name: dlis-application-svc
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+# ══════════════════════════════════════════════════════════════════════════════
+# PAYMENT SERVICE
+# ══════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dlis-payment-svc
+  namespace: dlis
+  labels:
+    app: dlis-payment-svc
+    version: "2.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dlis-payment-svc
+  template:
+    metadata:
+      labels:
+        app: dlis-payment-svc
+        version: "2.0.0"
+    spec:
+      tolerations:
+        - key: "arch"
+          operator: "Equal"
+          value: "s390x"
+          effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/arch: s390x
+      containers:
+        - name: dlis-payment-svc
+          image: IMAGE_REGISTRY/dlis/dlis-payment-svc:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: dlis-config
+            - secretRef:
+                name: dlis-db2-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dlis-payment-svc
+  namespace: dlis
+  labels:
+    app: dlis-payment-svc
+spec:
+  selector:
+    app: dlis-payment-svc
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dlis-payment-svc
+  namespace: dlis
+spec:
+  to:
+    kind: Service
+    name: dlis-payment-svc
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+# ══════════════════════════════════════════════════════════════════════════════
+# APPROVAL SERVICE
+# ══════════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dlis-approval-svc
+  namespace: dlis
+  labels:
+    app: dlis-approval-svc
+    version: "2.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dlis-approval-svc
+  template:
+    metadata:
+      labels:
+        app: dlis-approval-svc
+        version: "2.0.0"
+    spec:
+      tolerations:
+        - key: "arch"
+          operator: "Equal"
+          value: "s390x"
+          effect: "NoSchedule"
+      nodeSelector:
+        kubernetes.io/arch: s390x
+      containers:
+        - name: dlis-approval-svc
+          image: IMAGE_REGISTRY/dlis/dlis-approval-svc:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+          envFrom:
+            - configMapRef:
+                name: dlis-config
+            - secretRef:
+                name: dlis-db2-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dlis-approval-svc
+  namespace: dlis
+  labels:
+    app: dlis-approval-svc
+spec:
+  selector:
+    app: dlis-approval-svc
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: dlis-approval-svc
+  namespace: dlis
+spec:
+  to:
+    kind: Service
+    name: dlis-approval-svc
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

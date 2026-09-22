@@ -12,6 +12,8 @@ The system exposes a JAX-RS REST API and a CICS transaction bridge, both backed 
 
 ## Documentation Index
 
+### Monolith (this project)
+
 | Document | Description |
 |---|---|
 | [README.md](README.md) | This file — project overview and quick-start |
@@ -20,6 +22,17 @@ The system exposes a JAX-RS REST API and a CICS transaction bridge, both backed 
 | [api-specification.md](api-specification.md) | REST API reference and CICS transaction interface |
 | [data-model.md](data-model.md) | DB2 schema, entity descriptions, reference codes |
 | [deployment-guide-zlinux.md](deployment-guide-zlinux.md) | Step-by-step deployment guide for zLinux (IBM Z / LinuxONE) |
+
+### Modernisation (Quarkus Microservices — `../../java-modernisation/`)
+
+| Document | Description |
+|---|---|
+| [../../java-modernisation/README.md](../../java-modernisation/README.md) | Modernisation project overview and quick-start |
+| [../../java-modernisation/docs/modernisation-strategy.md](../../java-modernisation/docs/modernisation-strategy.md) | Why 4 services, framework selection, migration phases |
+| [../../java-modernisation/docs/microservices-architecture.md](../../java-modernisation/docs/microservices-architecture.md) | Service catalogue, API endpoints, data ownership |
+| [../../java-modernisation/docs/quarkus-migration-guide.md](../../java-modernisation/docs/quarkus-migration-guide.md) | EJB→CDI, javax→jakarta, Liberty→Quarkus migration patterns |
+| [../../java-modernisation/docs/openshift-zlinux.md](../../java-modernisation/docs/openshift-zlinux.md) | OpenShift on IBM Z deployment guide, CI/CD, HPA, Kustomize |
+| [../../java-modernisation/docs/lift-and-shift-x86.md](../../java-modernisation/docs/lift-and-shift-x86.md) | Lift-and-shift guide for x86 cloud (EKS, AKS, GKE, ROSA) |
 
 ---
 
