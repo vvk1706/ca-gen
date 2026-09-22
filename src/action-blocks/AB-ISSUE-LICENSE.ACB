@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-ISSUE-LICENSE
 * Process : PROC-VALIDATE-READY-FOR-ISSUE / PROC-GENERATE-LICENSE-NUMBER /
 *           PROC-SET-LICENSE-EXPIRY / PROC-CREATE-ISSUED-LICENSE /

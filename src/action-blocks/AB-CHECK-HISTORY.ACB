@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-CHECK-HISTORY
 * Process : PROC-RETRIEVE-DRIVING-HISTORY / PROC-CHECK-ACTIVE-SUSPENSION /
 *           PROC-CHECK-DEMERIT-POINTS / PROC-CHECK-UNPAID-FINES /

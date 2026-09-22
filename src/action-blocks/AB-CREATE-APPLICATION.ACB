@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-CREATE-APPLICATION
 * Process : PROC-CREATE-APPLICATION
 * Desc    : Create a new driver license application for a candidate

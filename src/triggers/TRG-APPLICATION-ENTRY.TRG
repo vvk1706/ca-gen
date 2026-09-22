@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Trigger Definitions
+* Trigger Definitions
 * Subject : APPLICATION ENTRY screen triggers
 * Screen  : SCR-APPLICATION-ENTRY
 *================================================================*

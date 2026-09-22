@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-CHECK-ELIGIBILITY
 * Process : PROC-CHECK-AGE-ELIGIBILITY / PROC-CHECK-ID-VALIDITY /
 *           PROC-CHECK-EXISTING-LICENSE / PROC-RECORD-ELIGIBILITY-RESULT

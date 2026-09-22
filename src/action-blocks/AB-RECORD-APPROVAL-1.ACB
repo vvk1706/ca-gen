@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-RECORD-APPROVAL-1
 * Process : PROC-VALIDATE-AUTHORITY1-USER / PROC-RECORD-APPROVAL1 /
 *           PROC-NOTIFY-REJECTION-AUTH1

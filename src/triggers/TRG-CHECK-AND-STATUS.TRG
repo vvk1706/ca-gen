@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Trigger Definitions
+* Trigger Definitions
 * Subject : ELIGIBILITY CHECK, HISTORY CHECK and STATUS screens
 *================================================================*
 

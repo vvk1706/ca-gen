@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-PROCESS-PAYMENT
 * Process : PROC-CALCULATE-FEE / PROC-RECORD-PAYMENT /
 *           PROC-VERIFY-PAYMENT / PROC-GENERATE-RECEIPT

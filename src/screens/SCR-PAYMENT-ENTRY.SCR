@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Screen Map Definition
+* Screen Map Definition
 * Screen  : SCR-PAYMENT-ENTRY
 * Process : PROC-CALCULATE-FEE / PROC-RECORD-PAYMENT / PROC-GENERATE-RECEIPT
 * Desc    : Payment capture and recording screen

@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Screen Map Definition
+* Screen Map Definition
 * Screen  : SCR-APPLICATION-STATUS
 * Process : PROC-INQUIRE-APPLICATION-STATUS
 * Desc    : Inquiry screen showing full end-to-end status of

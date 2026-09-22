@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-INQUIRE-APPLICATION-STATUS
 * Process : PROC-INQUIRE-APPLICATION-STATUS
 * Desc    : Returns full end-to-end status of a license application

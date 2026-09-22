@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Screen Map Definition
+* Screen Map Definition
 * Screen  : SCR-HISTORY-CHECK
 * Process : PROC-RETRIEVE-DRIVING-HISTORY / PROC-RECORD-HISTORY-RESULT
 * Desc    : Screen for viewing and recording history check results

@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Action Block
+* Action Block
 * Name    : AB-CREATE-CANDIDATE
 * Process : PROC-CREATE-CANDIDATE
 * Desc    : Validate and create a new candidate record

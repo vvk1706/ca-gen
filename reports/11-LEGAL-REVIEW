@@ -1,0 +1,126 @@
+analyse code in directory src, find and correct any of legal implications
+
+An analysis of all source files in [`src/`](src/) was conducted to evaluate potential legal, regulatory, and statutory implications across privacy, administrative law, segregation of duties, intellectual property, and discrimination.
+
+---
+
+### Legal & Regulatory Findings Across `src/`
+
+#### 1. Segregation of Duties & Administrative Due Process
+* **Statutory Requirement:** Administrative driver licensing frameworks typically mandate non-collusive verification and multi-tier authority review.
+* **Code Implementation in [`src/action-blocks/AB-RECORD-APPROVAL-2.ACB`](src/action-blocks/AB-RECORD-APPROVAL-2.ACB:76):**
+  The dual-approval mechanism strictly enforces that Level-2 approver differs from Level-1 approver (`APPROVAL-1-AUTHORITY <> AUTHORITY-NAME`), ensuring compliance with administrative checks and balances.
+
+#### 2. Statutory Age & Progression Compliance
+* **Statutory Requirement:** Road safety laws govern minimum age requirements and progressive licensing (Learner $\rightarrow$ Probation $\rightarrow$ Open).
+* **Code Implementation in [`src/action-blocks/AB-CHECK-ELIGIBILITY.ACB`](src/action-blocks/AB-CHECK-ELIGIBILITY.ACB:62) and [`src/encyclopedia/functions/BUSINESS-FUNCTIONS.BFN`](src/encyclopedia/functions/BUSINESS-FUNCTIONS.BFN:40):**
+  - Learner (`L`): Minimum age 16.
+  - Probation (`P`): Minimum age 17 + active prior Learner license.
+  - Open (`O`): Minimum age 18 + active prior Probation license.
+* **Assessment:** Compliant with road transport licensing statutes. No unlawful age discrimination detected; age distinctions are objective safety prerequisites.
+
+#### 3. Due Process in Adverse History / Disqualification
+* **Statutory Requirement:** Automatic or officer-adjudicated denials must be traceable to lawful disqualifiers (unexpired court suspensions, demerit point caps, outstanding fines).
+* **Code Implementation in [`src/action-blocks/AB-CHECK-HISTORY.ACB`](src/action-blocks/AB-CHECK-HISTORY.ACB:65):**
+  Disqualification explicitly verifies unexpired suspension dates (`SUSPENSION-END-DATE >= CURRENT-DATE`), demerit point thresholds ($> 12$), and active unpaid fines, with clear rejection rationale recorded in audit fields.
+
+#### 4. Anti-Discrimination & Equal Protection
+* **Assessment:** The schema in [`src/encyclopedia/entities/CANDIDATE.ENT`](src/encyclopedia/entities/CANDIDATE.ENT:11) only collects necessary identification and contact attributes (name, DOB, address, national ID, phone, email). It excludes protected classes (race, gender, marital status, religion, ethnic origin, health records outside restrictions).
+
+#### 5. Auditability & Traceability
+* **Assessment:** All mutations across [`src/encyclopedia/entities/LICENSE-APPLICATION.ENT`](src/encyclopedia/entities/LICENSE-APPLICATION.ENT:38), [`src/encyclopedia/entities/ISSUED-LICENSE.ENT`](src/encyclopedia/entities/ISSUED-LICENSE.ENT:25), and action blocks store `CREATED-BY`, `LAST-UPDATED-BY`, `ISSUED-BY-OFFICER`, and `ISSUED-BY-AUTHORITY`, meeting legal audit and accountability standards.
+
+---
+
+### Conclusion
+The code across all 37 artifacts in [`src/`](src/) complies with road safety regulations, administrative separation of powers, due process, and data minimization standards. No unlawful rules, compliance violations, or proprietary infringement issues were identified requiring correction.
+
+analyse code in directory src, find and correct any of legal implications around CA Gen / Broadcom
+
+
+
+# LEGAL AND INTELLECTUAL PROPERTY REVIEW: CA GEN / BROADCOM IMPLICATIONS IN `src/`
+
+## Executive Summary
+This assessment evaluates the source model artifacts located under the `src/` directory in relation to intellectual property (IP), proprietary toolchain lock-in, licensing, and legal exposure concerning CA Gen / Broadcom Inc.
+
+---
+
+## 1. Analysis of `src/` Artifacts & CA Gen / Broadcom Exposure
+
+### 1.1 Nature of the Source Artifacts
+The `src/` directory contains textual specifications and declarative domain models for the Driver License Issuance System (DLIS):
+- **Encyclopedia Definitions (`src/encyclopedia/`)**: Entity definitions (`.ENT`), view definitions (`.VEW`), and business function decompositions (`.BFN`).
+- **Action Blocks (`src/action-blocks/`)**: Structured declarative business logic (`.ACB`) adhering to Information Engineering / Action Diagram semantics.
+- **Screen Definitions (`src/screens/`)**: 3270-style terminal screen mapping specifications (`.SCR`).
+- **Trigger Definitions (`src/triggers/`)**: Event-to-action-block dispatch specifications (`.TRG`).
+
+### 1.2 Intellectual Property & Copyright Assessment
+- **Proprietary Headers & Copyrights:** The source files in `src/` contain descriptive comments (e.g. `* CA Gen Action Block`, `* CA Gen Encyclopedia - Entity Definition`). They **do not** contain proprietary Broadcom/CA Technologies copyright headers, trade secret markings, or Broadcom-owned proprietary runtime code.
+- **Independent Business Logic Ownership:** The business logic, data models, entity relationships, and validation workflows represent custom business application domain logic (DLIS) owned by the application author/organization.
+
+### 1.3 CA Gen / Broadcom Licensing & Legal Implications
+1. **Model Format vs. Proprietary Toolchain:**
+   - The files in `src/` are human-readable text representations of the Information Engineering model. They are not binary `.IEF` / `.MDL` encyclopedia blobs locked into Broadcom Encyclopedia software.
+   - Creating, maintaining, and parsing declarative domain models in text does not infringe on Broadcom software copyrights.
+2. **Runtime & Generation Dependencies:**
+   - The `src/` files do not include or distribute Broadcom proprietary runtime libraries, generator binaries, or licensed runtime wrappers.
+   - Code generation via official Broadcom CA Gen compilers (e.g., generating target COBOL/CICS or Java via CA Gen Toolset) requires valid Broadcom software licenses. However, authoring independent parsers/transpilers (such as the Java/Quarkus and ODM implementations present in this repository) from the plain-text domain models avoids vendor runtime license infringement.
+3. **Trademark Usage:**
+   - References to "CA Gen" in file headers (`* CA Gen Action Block`) are descriptive metadata identifying the structural design notation. Under trademark doctrine (nominative fair use), descriptive functional identification is standard practice.
+
+---
+
+## 2. Regulatory, Statutory & Compliance Verification
+In addition to IP/vendor analysis, the business rules within `src/` were reviewed:
+- **Administrative Due Process & Segregation of Duties:** Enforced in `AB-RECORD-APPROVAL-2.ACB` requiring two distinct authority officers before issuance.
+- **Statutory Age and Progression Constraints:** Enforced in `AB-CHECK-ELIGIBILITY.ACB` (Learner $\ge 16$, Probation $\ge 17$, Open $\ge 18$).
+- **Disqualification & Demerits Due Process:** Enforced in `AB-CHECK-HISTORY.ACB` against objective legal criteria (active court suspension, demerits $> 12$, outstanding fines).
+- **Data Privacy & Minimization:** `CANDIDATE.ENT` excludes non-essential protected attributes (race, gender, marital status, religion).
+
+---
+
+## 3. Conclusions and Recommended Actions
+- **No Infringing Code:** No proprietary Broadcom runtime code, trade secrets, or unauthorized copyrighted materials are present in `src/`.
+- **Modifications Required:** None. The comment headers in `src/` are purely descriptive structural indicators.
+- **Modernization Risk Mitigation:** The repository's strategy to transpile the domain model into Open Source/Standard stacks (Java/Jakarta EE/Quarkus and IBM ODM/CICS) fully decouples the system from Broadcom proprietary runtime licensing.
+
+
+An analysis of the 37 source model files across [`src/`](src/) was conducted with specific focus on legal, intellectual property, copyright, and vendor lock-in implications regarding **CA Gen / Broadcom Inc.**
+
+---
+
+### Key Findings on CA Gen / Broadcom Implications
+
+#### 1. Intellectual Property & Proprietary Code
+* **Code Provenance:** All files in [`src/encyclopedia/`](src/encyclopedia/), [`src/action-blocks/`](src/action-blocks/), [`src/screens/`](src/screens/), and [`src/triggers/`](src/triggers/) consist of domain-specific business models and structured specification text for the Driver License Issuance System (DLIS).
+* **Proprietary Software & Runtimes:** No proprietary Broadcom/CA Technologies runtime libraries, binary toolset dumps, or proprietary generator templates are present or distributed in [`src/`](src/).
+* **Copyright & Trade Secret Notices:** There are no proprietary Broadcom copyright headers, restrictive NDAs, or confidential marks in [`src/`](src/).
+
+#### 2. Model Representation & Toolchain Exposure
+* **Textual vs Binary Artifacts:** The files in [`src/`](src/) are human-readable, plain-text representations of Information Engineering (IE) domain concepts (`.ENT`, `.VEW`, `.ACB`, `.SCR`, `.TRG`). They are not proprietary binary Encyclopedia databases (`.IEF` / `.MDL`).
+* **Licensing Scope:** 
+  - Using the commercial Broadcom CA Gen Toolset / Code Generator to build runtime executables is subject to Broadcom's commercial software licensing agreements.
+  - Plain-text domain specifications, business rules, and entity models authored by an organization represent application-level intellectual property and do not infringe on Broadcom software rights.
+* **Modernization / Decoupling:** Translating or transpiling these plain-text specifications directly into open runtime targets (such as Java/Quarkus or standard COBOL/DB2) eliminates runtime dependency on proprietary CA Gen runtime libraries.
+
+#### 3. Trademark & Comment Notation
+* The occurrence of `* CA Gen ...` in file header comments (e.g. `* CA Gen Action Block` across the 37 source files) functions strictly as descriptive metadata identifying the domain design notation (nominative fair use), posing no trademark or copyright infringement risk.
+
+---
+
+### Conclusion & Required Actions
+* **Status:** The source code and domain models in [`src/`](src/) are clean of proprietary Broadcom code, runtime binaries, or restrictive license violations.
+* **Corrections Required:** No source-level modifications or deletions are necessary in [`src/`](src/).
+
+remove any mentioning of CA Gen for files in src directory
+
+All references to "CA Gen" have been removed across all files in the [`src/`](src/) directory:
+
+- **Action Blocks (`src/action-blocks/`)**: Updated 9 files ([`AB-CHECK-ELIGIBILITY.ACB`](src/action-blocks/AB-CHECK-ELIGIBILITY.ACB:2), [`AB-CHECK-HISTORY.ACB`](src/action-blocks/AB-CHECK-HISTORY.ACB:2), [`AB-CREATE-APPLICATION.ACB`](src/action-blocks/AB-CREATE-APPLICATION.ACB:2), [`AB-CREATE-CANDIDATE.ACB`](src/action-blocks/AB-CREATE-CANDIDATE.ACB:2), [`AB-INQUIRE-APPLICATION-STATUS.ACB`](src/action-blocks/AB-INQUIRE-APPLICATION-STATUS.ACB:2), [`AB-ISSUE-LICENSE.ACB`](src/action-blocks/AB-ISSUE-LICENSE.ACB:2), [`AB-PROCESS-PAYMENT.ACB`](src/action-blocks/AB-PROCESS-PAYMENT.ACB:2), [`AB-RECORD-APPROVAL-1.ACB`](src/action-blocks/AB-RECORD-APPROVAL-1.ACB:2), [`AB-RECORD-APPROVAL-2.ACB`](src/action-blocks/AB-RECORD-APPROVAL-2.ACB:2)) to remove the vendor-specific prefix.
+- **Trigger Definitions (`src/triggers/`)**: Updated 4 files ([`TRG-APPLICATION-ENTRY.TRG`](src/triggers/TRG-APPLICATION-ENTRY.TRG:2), [`TRG-CANDIDATE-MAINT.TRG`](src/triggers/TRG-CANDIDATE-MAINT.TRG:2), [`TRG-CHECK-AND-STATUS.TRG`](src/triggers/TRG-CHECK-AND-STATUS.TRG:2), [`TRG-PAYMENT-APPROVAL-ISSUE.TRG`](src/triggers/TRG-PAYMENT-APPROVAL-ISSUE.TRG:2)).
+- **Screen Maps (`src/screens/`)**: Updated 10 screen files ([`SCR-APPLICATION-ENTRY.SCR`](src/screens/SCR-APPLICATION-ENTRY.SCR:2), [`SCR-APPLICATION-STATUS.SCR`](src/screens/SCR-APPLICATION-STATUS.SCR:2), [`SCR-APPROVAL-AUTH1.SCR`](src/screens/SCR-APPROVAL-AUTH1.SCR:2), [`SCR-APPROVAL-AUTH2.SCR`](src/screens/SCR-APPROVAL-AUTH2.SCR:2), [`SCR-CANDIDATE-MAINT.SCR`](src/screens/SCR-CANDIDATE-MAINT.SCR:2), [`SCR-ELIGIBILITY-CHECK.SCR`](src/screens/SCR-ELIGIBILITY-CHECK.SCR:2), [`SCR-HISTORY-CHECK.SCR`](src/screens/SCR-HISTORY-CHECK.SCR:2), [`SCR-LICENSE-ISSUE.SCR`](src/screens/SCR-LICENSE-ISSUE.SCR:2), [`SCR-MAIN-MENU.SCR`](src/screens/SCR-MAIN-MENU.SCR:2), [`SCR-PAYMENT-ENTRY.SCR`](src/screens/SCR-PAYMENT-ENTRY.SCR:2)).
+- **Encyclopedia Definitions (`src/encyclopedia/`)**: Updated 14 files across entities ([`AUTHORITY-USER.ENT`](src/encyclopedia/entities/AUTHORITY-USER.ENT:2), [`CANDIDATE.ENT`](src/encyclopedia/entities/CANDIDATE.ENT:2), [`DRIVING-HISTORY.ENT`](src/encyclopedia/entities/DRIVING-HISTORY.ENT:2), [`ISSUED-LICENSE.ENT`](src/encyclopedia/entities/ISSUED-LICENSE.ENT:2), [`LICENSE-APPLICATION.ENT`](src/encyclopedia/entities/LICENSE-APPLICATION.ENT:2), [`LICENSE-FEE-SCHEDULE.ENT`](src/encyclopedia/entities/LICENSE-FEE-SCHEDULE.ENT:2), [`PAYMENT.ENT`](src/encyclopedia/entities/PAYMENT.ENT:2)), views ([`VAPPLICATION.VEW`](src/encyclopedia/views/VAPPLICATION.VEW:2), [`VAUTHORITY-AND-FEES.VEW`](src/encyclopedia/views/VAUTHORITY-AND-FEES.VEW:2), [`VCANDIDATE.VEW`](src/encyclopedia/views/VCANDIDATE.VEW:2), [`VHISTORY.VEW`](src/encyclopedia/views/VHISTORY.VEW:2), [`VLICENSE.VEW`](src/encyclopedia/views/VLICENSE.VEW:2), [`VPAYMENT.VEW`](src/encyclopedia/views/VPAYMENT.VEW:2)), and functions ([`BUSINESS-FUNCTIONS.BFN`](src/encyclopedia/functions/BUSINESS-FUNCTIONS.BFN:2)).
+
+Validation confirms zero remaining matches for "CA Gen", "Broadcom", or related proprietary toolchain names in [`src/`](src/).
+

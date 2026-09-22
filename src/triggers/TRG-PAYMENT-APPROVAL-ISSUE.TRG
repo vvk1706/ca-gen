@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Trigger Definitions
+* Trigger Definitions
 * Subject : PAYMENT, APPROVAL 1, APPROVAL 2, LICENSE ISSUE screens
 *================================================================*
 

@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Screen Map Definition
+* Screen Map Definition
 * Screen  : SCR-ELIGIBILITY-CHECK
 * Process : PROC-CHECK-AGE-ELIGIBILITY / PROC-RECORD-ELIGIBILITY-RESULT
 * Desc    : Screen for performing and recording eligibility check

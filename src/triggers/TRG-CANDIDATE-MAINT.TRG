@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Trigger Definitions
+* Trigger Definitions
 * Subject : CANDIDATE MAINTENANCE screen triggers
 * Screen  : SCR-CANDIDATE-MAINT
 *================================================================*

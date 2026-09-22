@@ -1,5 +1,5 @@
 *================================================================*
-* CA Gen Screen Map Definition
+* Screen Map Definition
 * Screen  : SCR-APPROVAL-AUTH2
 * Process : PROC-RETRIEVE-PENDING-AUTH2 / PROC-RECORD-APPROVAL2
 * Desc    : Second authority approval/rejection screen
