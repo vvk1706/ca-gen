@@ -1,0 +1,149 @@
+DLIS Java Project — Documentation Summary
+==========================================
+Generated documentation location: java/docs/
+Files produced: 6
+
+------------------------------------------------------------------------
+README.md
+------------------------------------------------------------------------
+Project overview, tech stack table, Maven module map, quick-start
+commands, environment variables, security roles, and health check
+endpoint.
+
+------------------------------------------------------------------------
+architecture.md
+------------------------------------------------------------------------
+Full ASCII architecture diagram showing REST clients, CICS callers, the
+WAR/JAR layers, EJB service layer, DAO layer, and DB2. Covers module
+responsibilities, transaction management (@TransactionAttribute),
+security architecture (role -> group -> LDAP), CICS integration topology
+(z/OS LPAR diagram), COMMAREA layout summaries for all three CICS
+programs, and the build/CI pipeline.
+
+------------------------------------------------------------------------
+business-logic.md
+------------------------------------------------------------------------
+Complete business rule documentation extracted directly from the EJB
+source:
+  - License type upgrade path rules (L -> P -> O, age minimums)
+  - Full application status lifecycle with ASCII flow diagram
+  - Every business rule for each operation (create, eligibility check,
+    history check, payment, approval 1 & 2, license issuance)
+  - Demerit threshold (12 points), suspension/unpaid-fine blocking rules
+  - ServiceResult return code table mapped to HTTP status codes
+  - Seeded fee schedule
+
+------------------------------------------------------------------------
+api-specification.md
+------------------------------------------------------------------------
+Complete REST and CICS API reference:
+  - All 11 REST endpoints with full request/response JSON schemas and
+    error tables
+  - Role-based access per endpoint
+  - CICS COMMAREA byte-level layouts for all three transactions:
+      CAND  396 bytes
+      APPL  180 bytes
+      PAAP  544 bytes
+  - Function code tables and return code tables for CICS programs
+
+------------------------------------------------------------------------
+data-model.md
+------------------------------------------------------------------------
+  - Entity relationship diagram
+  - All 7 DB2 tables with full column specs, constraints, and reference
+    code tables
+  - All 14 indexes with their purpose
+  - License validity periods, vehicle class codes, payment method codes
+  - Seeded fee schedule data
+  - Java domain class -> DB table mapping with helper method inventory
+
+------------------------------------------------------------------------
+deployment-guide-zlinux.md
+------------------------------------------------------------------------
+Step-by-step deployment covering three deployment options:
+  Option A — Standalone Liberty on zLinux
+              (install, configure, systemd service)
+  Option B — Docker/OCI container on s390x
+  Option C — Red Hat OpenShift on IBM Z
+              (Deployment YAML, Secrets, Route)
+Also covers:
+  - CICS bridge: JVM server setup, JCL for DFHCSDUP, CICS verification
+  - Security configuration (LDAP registry, TLS certificate, DB2 SSL)
+  - Health check and smoke test scripts
+  - Troubleshooting section for the most common failure modes
+
+======================================================================
+QLD context introduced
+======================================================================
+
+Changes applied to update documentation for Queensland, Australia
+citizens context (5 files updated):
+
+------------------------------------------------------------------------
+README.md
+------------------------------------------------------------------------
+- Overview paragraph updated to state the system serves citizens of
+  Queensland, Australia.
+- Added contextual note: identity numbers follow the Queensland driver
+  licence format, addresses use Australian states/territories and
+  4-digit postcodes, currency is AUD.
+
+------------------------------------------------------------------------
+business-logic.md
+------------------------------------------------------------------------
+- Section 3 (Candidate Management): added a paragraph explaining that
+  ID_NUMBER stores the Queensland driver licence number or QLD
+  proof-of-age card number (up to 8 digits); rule 1 reworded
+  accordingly.
+- Section 7 (Payment): fee table header changed from Amount (USD) to
+  Amount (AUD); added "All amounts are in Australian Dollars (AUD)"
+  note above the table.
+
+------------------------------------------------------------------------
+api-specification.md
+------------------------------------------------------------------------
+- POST /candidates description: added "Candidates are Queensland,
+  Australia residents."
+- Request body example updated:
+    idNumber      -> "12345678"
+    city          -> "Brisbane"
+    stateProvince -> "Queensland"
+    postalCode    -> "4000"
+    country       -> "AU"
+    phoneNumber   -> "+61-7-3000-0100"
+- Field descriptions updated: idNumber (QLD licence/proof-of-age),
+  city (city/suburb), stateProvince (Australian state/territory),
+  postalCode (4-digit Australian), country (AU), phoneNumber (+61).
+- GET /candidates/{id} response example: same address fields updated
+  to Queensland values.
+- GET /candidates?idNumber= endpoint renamed to "Find by Queensland ID
+  Number" with updated description.
+
+------------------------------------------------------------------------
+data-model.md
+------------------------------------------------------------------------
+- CANDIDATE table intro: "All candidates are Queensland, Australia
+  residents."
+- ID_NUMBER column description updated to Queensland driver licence /
+  proof-of-age card number.
+- ADDRESS_LINE_2, CITY, STATE_PROVINCE, POSTAL_CODE, COUNTRY,
+  PHONE_NUMBER column descriptions updated with Australian context.
+- LICENSE_FEE_SCHEDULE.CURRENCY_CODE default changed from 'USD' to
+  'AUD'; description updated.
+- Seeded fee table header updated to Amount (AUD) with AUD note added.
+
+------------------------------------------------------------------------
+deployment-guide-zlinux.md
+------------------------------------------------------------------------
+- All keytool -dname examples (Option A and Option B):
+    C=ZA, L=City, ST=State
+    replaced with
+    C=AU, L=Brisbane, ST=Queensland
+  (both occurrences updated).
+- Smoke test curl example address fields updated:
+    idNumber      -> "12345678"
+    addressLine1  -> "1 George Street"
+    city          -> "Brisbane"
+    stateProvince -> "Queensland"
+    postalCode    -> "4000"
+    country       -> "AU"
