@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CA Gen Capabilities — IBM Bob Summary</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 2rem 1rem;
+  }
+
+  .page { max-width: 760px; margin: 0 auto; }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .subtitle {
+    color: #57606a;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 2rem 0 0.5rem;
+    color: #1f2328;
+    border-left: 4px solid #3b82d4;
+    padding-left: 0.6rem;
+  }
+
+  h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 1rem 0 0.3rem;
+    color: #1f2328;
+  }
+
+  p { margin-bottom: 0.7rem; }
+
+  ul {
+    margin: 0.4rem 0 0.8rem 1.4rem;
+  }
+
+  li { margin-bottom: 0.3rem; }
+
+  .question-block {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 5px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+  }
+
+  .question-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #57606a;
+    margin-bottom: 0.4rem;
+  }
+
+  .question-text {
+    color: #1f2328;
+    font-style: italic;
+  }
+
+  .yes-block {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    border-radius: 0 4px 4px 0;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #166534;
+  }
+
+  .no-block {
+    background: #fff7ed;
+    border-left: 4px solid #ea580c;
+    border-radius: 0 4px 4px 0;
+    padding: 0.7rem 1rem;
+    margin: 0.5rem 0 1rem;
+    font-size: 0.88rem;
+  }
+
+  .check { color: #16a34a; font-weight: 700; }
+  .cross { color: #dc2626; font-weight: 700; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.6rem 0 1.2rem;
+    font-size: 0.83rem;
+  }
+
+  th {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    padding: 0.4rem 0.7rem;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  td {
+    border: 1px solid #e5e7eb;
+    padding: 0.38rem 0.7rem;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: #fafafa; }
+
+  hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 1.8rem 0;
+  }
+
+  .callout {
+    background: #f0f6ff;
+    border-left: 4px solid #3b82d4;
+    border-radius: 0 4px 4px 0;
+    padding: 0.7rem 1rem;
+    margin: 0.75rem 0 1rem;
+    font-size: 0.87rem;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>CA Gen Capabilities — IBM Bob</h1>
+  <p class="subtitle">
+    Summary of how IBM Bob handles CA Gen artefacts, what it relies on,
+    and what its boundaries are. Includes the original user question verbatim.
+  </p>
+
+  <!-- Original question -->
+  <div class="question-block">
+    <div class="question-label">User question</div>
+    <div class="question-text">
+      "Do you use any of proprietary CA Gen models or runtimes or anything else
+      when dealing with CA Gen capabilities?"
+    </div>
+  </div>
+
+  <div class="yes-block">
+    Short answer: No — no proprietary CA Gen tooling, models, runtimes, or SDKs are used.
+  </div>
+
+  <hr>
+
+  <!-- What Bob actually does -->
+  <h2>What IBM Bob Actually Does with CA Gen Artefacts</h2>
+
+  <p>
+    Everything Bob does with CA Gen material is based on reading and reasoning over the
+    source files present in the workspace. No external tooling, runtime, or proprietary
+    model is invoked at any point.
+  </p>
+
+  <h3>File types read directly</h3>
+  <ul>
+    <li>Generated COBOL source — <code>.cbl</code></li>
+    <li>COBOL copybooks — <code>.cpy</code></li>
+    <li>DB2 DDL — <code>.sql</code></li>
+    <li>BMS screen maps — <code>.bms</code></li>
+    <li>JCL procedures — <code>.jcl</code>, <code>.proc</code></li>
+    <li>CICS resource definitions — <code>.csd</code></li>
+    <li>Documentation and comparison files — <code>.md</code>, <code>.txt</code></li>
+  </ul>
+
+  <h3>How analysis is performed</h3>
+  <ul>
+    <li>COBOL programs are parsed with general code-reading and reasoning —
+        the same approach used for any COBOL source, CA Gen–generated or hand-written.</li>
+    <li>CA Gen–specific conventions (action diagram patterns, IEF/Advantage Gen generated
+        COBOL structure, encyclopaedia export formats) are understood from training knowledge
+        about the toolset — not from a live CA Gen connection.</li>
+    <li>All output (OpenAPI specs, data models, business rules, workflow docs) is produced
+        by reasoning over the visible source files, not by invoking any generator.</li>
+  </ul>
+
+  <hr>
+
+  <!-- What Bob does NOT have -->
+  <h2>What IBM Bob Does Not Have Access To</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Available?</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>CA Gen encyclopaedia / repository</td>
+        <td><span class="cross">✗ No</span></td>
+        <td>The encyclopaedia database is not accessible</td>
+      </tr>
+      <tr>
+        <td>CA Gen Generator runtime</td>
+        <td><span class="cross">✗ No</span></td>
+        <td>Cannot regenerate code or run generation steps</td>
+      </tr>
+      <tr>
+        <td>IEF / Advantage Gen SDK</td>
+        <td><span class="cross">✗ No</span></td>
+        <td>No SDK or API calls to CA Gen tooling</td>
+      </tr>
+      <tr>
+        <td>Connection to CA / Broadcom tooling</td>
+        <td><span class="cross">✗ No</span></td>
+        <td>No live integration with any CA product</td>
+      </tr>
+      <tr>
+        <td>Proprietary CA Gen parser or model</td>
+        <td><span class="cross">✗ No</span></td>
+        <td>Parsing is general COBOL/SQL/text reasoning</td>
+      </tr>
+      <tr>
+        <td>Entity-relationship diagrams (encyclopaedia-only)</td>
+        <td><span class="cross">✗ No</span></td>
+        <td>Only visible if exported to a readable file format</td>
+      </tr>
+      <tr>
+        <td>Action diagram logic (not exported)</td>
+        <td><span class="cross">✗ No</span></td>
+        <td>Only accessible via generated COBOL in the workspace</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr>
+
+  <!-- Boundary -->
+  <h2>Boundary Condition — What This Means in Practice</h2>
+
+  <div class="callout">
+    The analysis is only as good as what is visible in the exported source files.
+    If CA Gen metadata lives exclusively inside the encyclopaedia — entity-relationship
+    diagrams, unexported action diagram logic, data model relationships — Bob cannot
+    see it unless it has been exported to a readable format first (e.g. generated COBOL,
+    SQL DDL, or a text/markdown export).
+  </div>
+
+  <h3>Implication for CA Gen projects</h3>
+  <ul>
+    <li>Generated COBOL + copybooks + DDL give full coverage of data structures,
+        business logic, and database operations.</li>
+    <li>BMS maps give full coverage of screen layouts and field names.</li>
+    <li>JCL and CSD give coverage of deployment and CICS resource configuration.</li>
+    <li>Encyclopaedia-only artefacts (diagrams, model metadata, cross-references
+        not reflected in generated code) are outside scope unless exported.</li>
+  </ul>
+
+  <footer>Made with IBM Bob</footer>
+
+</div>
+</body>
+</html>

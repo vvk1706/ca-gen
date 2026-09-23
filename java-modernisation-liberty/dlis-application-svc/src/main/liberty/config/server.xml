@@ -1,0 +1,44 @@
+<server description="DLIS Application Lifecycle Service Server">
+    <featureManager>
+        <feature>restfulWS-3.1</feature>
+        <feature>jsonb-3.0</feature>
+        <feature>jsonp-2.1</feature>
+        <feature>cdi-4.0</feature>
+        <feature>mpConfig-3.1</feature>
+        <feature>mpHealth-4.0</feature>
+        <feature>mpOpenAPI-3.1</feature>
+        <feature>mpRestClient-3.0</feature>
+        <feature>jdbc-4.3</feature>
+    </featureManager>
+
+    <httpEndpoint id="defaultHttpEndpoint"
+                  host="*"
+                  httpPort="${HTTP_PORT:9080}"
+                  httpsPort="${HTTPS_PORT:9443}" />
+
+    <!-- DB2 DataSource Configuration -->
+    <dataSource id="dlisDS" jndiName="jdbc/dlisDS">
+        <jdbcDriver libraryRef="DB2JccLib"/>
+        <properties.db2.jcc
+            serverName="${DB2_HOST:db2.dlis.internal}"
+            portNumber="${DB2_PORT:50000}"
+            databaseName="${DB2_DBNAME:DLISDB}"
+            user="${DB2_USER:dlisapp}"
+            password="${DB2_PASSWORD}"
+            currentSchema="DLIS"
+            driverType="4" />
+        <connectionManager minPoolSize="2" maxPoolSize="10" />
+    </dataSource>
+
+    <library id="DB2JccLib">
+        <fileset dir="${shared.resource.dir}/db2" includes="*.jar"/>
+    </library>
+
+    <!-- Logging configuration -->
+    <logging consoleLogLevel="INFO"
+             consoleFormat="${LOG_JSON:false == 'true' ? 'json' : 'simple'}"
+             traceSpecification="com.dlis.*=fine:all=info"/>
+
+    <!-- Microservice web application mapped to root context -->
+    <webApplication contextRoot="/" location="dlis-application-svc.war"/>
+</server>

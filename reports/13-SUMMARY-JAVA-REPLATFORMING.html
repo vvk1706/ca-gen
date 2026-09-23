@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DLIS Java Replatforming (Quarkus to Open Liberty) — Summary</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 2rem 1rem;
+  }
+
+  .page { max-width: 760px; margin: 0 auto; }
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .subtitle {
+    color: #57606a;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 2rem 0 0.5rem;
+    color: #1f2328;
+    border-left: 4px solid #3b82d4;
+    padding-left: 0.6rem;
+  }
+
+  h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 1rem 0 0.3rem;
+    color: #1f2328;
+  }
+
+  p { margin-bottom: 0.7rem; }
+
+  ul {
+    margin: 0.4rem 0 0.8rem 1.4rem;
+  }
+
+  li { margin-bottom: 0.3rem; }
+
+  .question-block {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 5px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+  }
+
+  .question-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #57606a;
+    margin-bottom: 0.4rem;
+  }
+
+  .question-text {
+    color: #1f2328;
+    font-style: italic;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 0.85rem;
+  }
+
+  th, td {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    text-align: left;
+  }
+
+  th {
+    background: #f7f8fa;
+    font-weight: 600;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: #f7f8fa;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 12px;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>DLIS Java Replatforming Summary</h1>
+  <p class="subtitle">Quarkus to Open Liberty Migration & Deployment Architecture</p>
+
+  <div class="question-block">
+    <div class="question-label">User Prompt</div>
+    <div class="question-text">
+      please re-platform java app in java-modernisation directory from quarkus to liberty runtime. put an replatformed application to deriectory java-modernisation-liberty not changing the code in java-modernisation. record all steps including prompt into file reports/13-JAVA-REPLATFORMING.TXT and put summary including prompt into file 13-SUMMARY-JAVA-REPLATFORMING.html
+    </div>
+  </div>
+
+  <h2>1. Executive Summary</h2>
+  <p>
+    The DLIS (Driver License Issuance System) microservices application has been systematically replatformed from Quarkus 3.x to <strong>Open Liberty 24.0.0.3</strong> (Jakarta EE 10 / MicroProfile 6.1). The new implementation is located in <code>java-modernisation-liberty/</code>, ensuring that the original code in <code>java-modernisation/</code> remains completely untouched.
+  </p>
+
+  <h2>2. Architectural Comparison</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Dimension</th>
+        <th>Quarkus (java-modernisation)</th>
+        <th>Open Liberty (java-modernisation-liberty)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Runtime</strong></td>
+        <td>Quarkus 3.8.4 LTS</td>
+        <td>Open Liberty 24.0.0.3</td>
+      </tr>
+      <tr>
+        <td><strong>Standards</strong></td>
+        <td>Jakarta EE 10 / MicroProfile</td>
+        <td>Jakarta EE 10 Web Profile / MicroProfile 6.1</td>
+      </tr>
+      <tr>
+        <td><strong>Packaging</strong></td>
+        <td>Quarkus Fast-JAR</td>
+        <td>Standard Web Archive (WAR)</td>
+      </tr>
+      <tr>
+        <td><strong>Server Configuration</strong></td>
+        <td><code>application.properties</code></td>
+        <td><code>server.xml</code> + MicroProfile Config</td>
+      </tr>
+      <tr>
+        <td><strong>Dependency Injection</strong></td>
+        <td>Quarkus Arc CDI 4.0</td>
+        <td>Weld CDI 4.0 (<code>@ApplicationScoped</code>)</td>
+      </tr>
+      <tr>
+        <td><strong>REST Client</strong></td>
+        <td><code>@Inject</code> RestClient</td>
+        <td><code>@Inject @RestClient</code> (MicroProfile standard)</td>
+      </tr>
+      <tr>
+        <td><strong>DataSource</strong></td>
+        <td>Agroal Connection Pool</td>
+        <td>Liberty JDBC Pool (<code>jdbc/dlisDS</code>)</td>
+      </tr>
+      <tr>
+        <td><strong>Health Checks</strong></td>
+        <td>SmallRye Health</td>
+        <td>MicroProfile Health 4.0 (<code>/health/live</code>, <code>/health/ready</code>)</td>
+      </tr>
+      <tr>
+        <td><strong>Container Base Image</strong></td>
+        <td><code>ubi9/openjdk-17-runtime</code></td>
+        <td><code>icr.io/appcafe/open-liberty:full-java17-openj9-ubi</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Microservice Decomposition</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Microservice</th>
+        <th>HTTP Port</th>
+        <th>Database Tables</th>
+        <th>Primary Scope</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>dlis-candidate-svc</code></td>
+        <td>9080</td>
+        <td><code>DLIS.CANDIDATE</code></td>
+        <td>Candidate profile management and national ID lookup</td>
+      </tr>
+      <tr>
+        <td><code>dlis-application-svc</code></td>
+        <td>9080</td>
+        <td><code>DLIS.LICENSE_APPLICATION</code>, <code>DLIS.DRIVING_HISTORY</code></td>
+        <td>Application lifecycle, eligibility verification & violation checks</td>
+      </tr>
+      <tr>
+        <td><code>dlis-payment-svc</code></td>
+        <td>9080</td>
+        <td><code>DLIS.PAYMENT</code>, <code>DLIS.LICENSE_FEE_SCHEDULE</code></td>
+        <td>Fee schedule resolution and payment settlement</td>
+      </tr>
+      <tr>
+        <td><code>dlis-approval-svc</code></td>
+        <td>9080</td>
+        <td><code>DLIS.ISSUED_LICENSE</code>, <code>DLIS.AUTHORITY_USER</code></td>
+        <td>Two-tier authorization approvals and license generation</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Replatforming Highlights</h2>
+  <ul>
+    <li><strong>Zero Business Logic Loss:</strong> All business constraints, fee evaluations, and CA Gen action block rules were preserved exactly.</li>
+    <li><strong>Standardized CDI & JAX-RS:</strong> Complete alignment with Jakarta EE 10 specifications.</li>
+    <li><strong>OpenShift on IBM Z Support:</strong> Multi-arch Dockerfiles and OpenShift manifests supporting s390x (zLinux) with full x86-64 lift-and-shift capability.</li>
+    <li><strong>Comprehensive Health Monitoring:</strong> Configured MicroProfile Health probes for liveness and readiness database validation.</li>
+  </ul>
+
+  <h2>5. Delivered Artefacts</h2>
+  <ul>
+    <li><code>java-modernisation-liberty/</code> — Complete multi-module Maven project and microservice source code.</li>
+    <li><code>java-modernisation-liberty/deploy/ocp/dlis-all.yaml</code> — Kubernetes/OpenShift deployments, services, routes, configmaps, and secrets.</li>
+    <li><code>java-modernisation-liberty/docs/</code> — Comprehensive documentation covering strategy, architecture, replatforming guide, OpenShift on zLinux, and lift-and-shift.</li>
+    <li><code>reports/13-JAVA-REPLATFORMING.TXT</code> — Detailed execution log and step-by-step audit trail.</li>
+    <li><code>13-SUMMARY-JAVA-REPLATFORMING.html</code> & <code>reports/13-SUMMARY-JAVA-REPLATFORMING.html</code> — Standalone HTML summary reports.</li>
+  </ul>
+
+  <div class="footer">
+    Made with IBM Bob
+  </div>
+</div>
+</body>
+</html>

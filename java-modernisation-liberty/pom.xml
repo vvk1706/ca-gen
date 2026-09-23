@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.dlis</groupId>
+  <artifactId>dlis-modernisation-liberty</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>DLIS — Modernisation (Open Liberty Microservices)</name>
+  <description>
+    Microservices decomposition of the DLIS monolith replatformed on
+    Open Liberty runtime (MicroProfile 6.1 / Jakarta EE 10 Core/Web Profile)
+    targeting Red Hat OpenShift on IBM Z / LinuxONE (s390x / zLinux)
+    with full lift-and-shift portability to x86 cloud Kubernetes environments.
+  </description>
+
+  <modules>
+    <module>dlis-common</module>
+    <module>dlis-candidate-svc</module>
+    <module>dlis-application-svc</module>
+    <module>dlis-payment-svc</module>
+    <module>dlis-approval-svc</module>
+  </modules>
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Open Liberty & MicroProfile / Jakarta EE versions -->
+    <liberty.runtime.version>24.0.0.3</liberty.runtime.version>
+    <liberty.maven.plugin.version>3.10.2</liberty.maven.plugin.version>
+    <microprofile.version>6.1</microprofile.version>
+    <jakartaee-api.version>10.0.0</jakartaee-api.version>
+
+    <!-- DB2 JCC driver -->
+    <db2.jcc.version>11.5.9.0</db2.jcc.version>
+
+    <!-- Testing -->
+    <junit.version>5.10.2</junit.version>
+    <mockito.version>5.11.0</mockito.version>
+    <maven.surefire.version>3.2.5</maven.surefire.version>
+    <maven.war.plugin.version>3.4.0</maven.war.plugin.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- MicroProfile 6.1 BOM / API -->
+      <dependency>
+        <groupId>org.eclipse.microprofile</groupId>
+        <artifactId>microprofile</artifactId>
+        <version>${microprofile.version}</version>
+        <type>pom</type>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Jakarta EE 10 Web API -->
+      <dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-web-api</artifactId>
+        <version>${jakartaee-api.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Shared domain module -->
+      <dependency>
+        <groupId>com.dlis</groupId>
+        <artifactId>dlis-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <!-- DB2 JCC -->
+      <dependency>
+        <groupId>com.ibm.db2</groupId>
+        <artifactId>jcc</artifactId>
+        <version>${db2.jcc.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Liberty Maven Plugin for packaging and dev mode -->
+        <plugin>
+          <groupId>io.openliberty.tools</groupId>
+          <artifactId>liberty-maven-plugin</artifactId>
+          <version>${liberty.maven.plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-war-plugin</artifactId>
+          <version>${maven.war.plugin.version}</version>
+          <configuration>
+            <failOnMissingWebXml>false</failOnMissingWebXml>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.surefire.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>
