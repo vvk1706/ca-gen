@@ -1,0 +1,1469 @@
+openapi: 3.0.3
+info:
+  title: Driver License Issuance System (DLIS) API
+  description: |
+    REST API derived from the DLIS CICS/COBOL mainframe application.
+    Covers the complete lifecycle of driver licence applications:
+    candidate management, application submission, eligibility and history
+    checks, fee payment, dual-authority approval, and licence issuance.
+
+    **Original mainframe stack:** IBM z/OS · CICS · COBOL · Db2 for z/OS  
+    **Source schema:** DLIS  
+    **Source programs:** DLISCAND, DLISAPPL, DLISSTAT, DLISELIG, DLISHIST,
+    DLISPAY, DLISAP1, DLISAP2, DLISISSU
+  version: "1.0.0"
+  contact:
+    name: DLIS API Team
+
+servers:
+  - url: https://api.dlis.example.com/v1
+    description: Production
+
+tags:
+  - name: Candidates
+    description: Candidate (applicant person) management — derived from DLISCAND (DL02)
+  - name: Applications
+    description: Licence application lifecycle — DLISAPPL (DL03), DLISSTAT (DL04)
+  - name: Eligibility
+    description: Eligibility checks — DLISELIG (DL05)
+  - name: HistoryCheck
+    description: Driving history checks — DLISHIST (DL06)
+  - name: Payments
+    description: Fee payment processing — DLISPAY (DL07)
+  - name: Approvals
+    description: Dual-authority approval workflow — DLISAP1 (DL08), DLISAP2 (DL09)
+  - name: Licences
+    description: Licence issuance — DLISISSU (DL10)
+  - name: FeeSchedule
+    description: Licence fee schedule lookup — DLISAPPL (DL03)
+
+paths:
+
+  # ─────────────────────────────────────────────────────────────────
+  # CANDIDATES
+  # ─────────────────────────────────────────────────────────────────
+
+  /candidates:
+    post:
+      tags: [Candidates]
+      summary: Create candidate
+      description: |
+        Creates a new candidate record.
+        Source: DLISCAND paragraph CREATE-CANDIDATE.
+        - firstName, lastName, and idNumber are mandatory.
+        - idNumber must be unique across active candidates.
+      operationId: createCandidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateCreateRequest'
+      responses:
+        '201':
+          description: Candidate created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Candidate with this ID number already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /candidates/{candidateId}:
+    get:
+      tags: [Candidates]
+      summary: Get candidate by ID
+      description: |
+        Retrieves a candidate record by candidateId.
+        Source: DLISCAND paragraph INQUIRE-CANDIDATE.
+      operationId: getCandidateById
+      parameters:
+        - $ref: '#/components/parameters/CandidateIdPath'
+      responses:
+        '200':
+          description: Candidate found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidate'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Candidates]
+      summary: Update candidate
+      description: |
+        Updates an existing candidate's contact and address details.
+        Source: DLISCAND paragraph UPDATE-CANDIDATE.
+      operationId: updateCandidate
+      parameters:
+        - $ref: '#/components/parameters/CandidateIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateUpdateRequest'
+      responses:
+        '200':
+          description: Candidate updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Candidates]
+      summary: Deactivate candidate
+      description: |
+        Sets the candidate's RECORD_STATUS to 'I' (Inactive).
+        Source: DLISCAND paragraph DEACTIVATE-CANDIDATE.
+        This is a logical delete — the record is retained.
+      operationId: deactivateCandidate
+      parameters:
+        - $ref: '#/components/parameters/CandidateIdPath'
+      responses:
+        '200':
+          description: Candidate deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /candidates/by-id-number/{idNumber}:
+    get:
+      tags: [Candidates]
+      summary: Get candidate by national ID number
+      description: |
+        Retrieves a candidate record by national ID number.
+        Source: DLISCAND paragraph INQUIRE-CANDIDATE (ID_NUMBER lookup branch).
+      operationId: getCandidateByIdNumber
+      parameters:
+        - name: idNumber
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 20
+      responses:
+        '200':
+          description: Candidate found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Candidate'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────────────────────────────────────────────
+  # APPLICATIONS
+  # ─────────────────────────────────────────────────────────────────
+
+  /applications:
+    post:
+      tags: [Applications]
+      summary: Submit licence application
+      description: |
+        Creates a new licence application for a candidate.
+        Source: DLISAPPL paragraph SUBMIT-APPLICATION.
+
+        **Rules:**
+        - licenseType must be L, P, or O.
+        - Candidate must exist and be active.
+        - No active application (status not RE or IS) may already exist
+          for the same candidate + licenseType.
+        - Application is created with status PE (Pending).
+      operationId: submitApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreateRequest'
+      responses:
+        '201':
+          description: Application submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationCreateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Active application already exists for this candidate and licence type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /applications/{applicationId}:
+    get:
+      tags: [Applications]
+      summary: Get application status
+      description: |
+        Retrieves the full status of a licence application, including all
+        gate statuses (eligibility, history, payment, approvals).
+        Source: DLISSTAT paragraph INQUIRE-STATUS.
+        If application_status is IS, also returns the issued licenseNumber
+        and expiryDate.
+      operationId: getApplicationStatus
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      responses:
+        '200':
+          description: Application found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationStatus'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /applications/{applicationId}/fee:
+    get:
+      tags: [Applications]
+      summary: Get application fee
+      description: |
+        Returns the current applicable initial fee for the licence type
+        of an application.
+        Source: DLISAPPL paragraph CALC-FEE.
+        Selects the active fee schedule row with FEE_TYPE='IF',
+        EFFECTIVE_DATE <= today, and EXPIRY_DATE >= today (or null).
+      operationId: getApplicationFee
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      responses:
+        '200':
+          description: Fee retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: No fee schedule found for this licence type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─────────────────────────────────────────────────────────────────
+  # ELIGIBILITY CHECK
+  # ─────────────────────────────────────────────────────────────────
+
+  /applications/{applicationId}/eligibility-check:
+    post:
+      tags: [Eligibility]
+      summary: Run eligibility check
+      description: |
+        Runs all eligibility rules and records the result.
+        Source: DLISELIG paragraph RUN-ELIGIBILITY-CHECK.
+
+        **Rules evaluated (in order):**
+        1. Age: L ≥ 16, P ≥ 17, O ≥ 18 (based on DATE_OF_BIRTH).
+        2. Upgrade path — P: must hold an active Learner (L) issued licence.
+        3. Upgrade path — O: must hold an active Probation (P) issued licence.
+
+        **Pass:** eligCheckStatus → P, applicationStatus → EC  
+        **Fail:** eligCheckStatus → F, applicationStatus → RE, reason recorded
+      operationId: runEligibilityCheck
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EligibilityCheckRequest'
+      responses:
+        '200':
+          description: Eligibility check completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibilityCheckResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    get:
+      tags: [Eligibility]
+      summary: Get eligibility check details
+      description: |
+        Returns current eligibility check status and metadata for an application.
+        Source: DLISELIG paragraph LOAD-APPLICATION.
+      operationId: getEligibilityCheck
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      responses:
+        '200':
+          description: Eligibility details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EligibilityDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────────────────────────────────────────────
+  # HISTORY CHECK
+  # ─────────────────────────────────────────────────────────────────
+
+  /applications/{applicationId}/history-check:
+    post:
+      tags: [HistoryCheck]
+      summary: Run driving history check
+      description: |
+        Evaluates the candidate's driving record and records a pass/fail.
+        Source: DLISHIST paragraph RUN-HISTORY-CHECK.
+
+        **Prerequisite:** eligCheckStatus must be P.
+
+        **Rules evaluated (any one failure causes a FAIL):**
+        1. Active suspension or disqualification (SU or DQ incident with
+           SUSP_END_DATE >= today or null).
+        2. Total demerit points > 12.
+        3. Any unpaid fine (FINE_AMOUNT > 0 and FINE_PAID_STATUS = 'N').
+
+        **Pass:** histCheckStatus → P, applicationStatus → HC  
+        **Fail:** histCheckStatus → F, applicationStatus → RE, reason recorded
+      operationId: runHistoryCheck
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HistoryCheckRequest'
+      responses:
+        '200':
+          description: History check completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryCheckResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Eligibility check not yet passed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [HistoryCheck]
+      summary: Get driving history for a candidate
+      description: |
+        Returns the candidate's driving history records (up to 50), ordered
+        by INCIDENT_DATE DESC, plus aggregate flags.
+        Source: DLISHIST paragraph LOAD-HISTORY-TABLE.
+      operationId: getDrivingHistory
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number (7 records per page, matching BMS scroll)
+      responses:
+        '200':
+          description: Driving history retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrivingHistoryResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────────────────────────────────────────────
+  # PAYMENTS
+  # ─────────────────────────────────────────────────────────────────
+
+  /applications/{applicationId}/payment:
+    post:
+      tags: [Payments]
+      summary: Process payment
+      description: |
+        Records a fee payment for a licence application.
+        Source: DLISPAY paragraph PROCESS-PAYMENT.
+
+        **Prerequisite:** histCheckStatus must be P.  
+        Payment must not already exist for this application (PAYMENT_STATUS ≠ P).
+
+        **Receipt number format:** RCP + YYYYMMDD + applicationId  
+        **After success:** PAYMENT_STATUS → P, APPLICATION_STATUS → PA
+      operationId: processPayment
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Payment already recorded for this application
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: History check not yet passed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags: [Payments]
+      summary: Get payment details
+      description: Returns the payment details for an application, including fee amount and receipt.
+      operationId: getPayment
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      responses:
+        '200':
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────────────────────────────────────────────
+  # APPROVALS
+  # ─────────────────────────────────────────────────────────────────
+
+  /applications/{applicationId}/approval/first:
+    post:
+      tags: [Approvals]
+      summary: Submit first authority approval
+      description: |
+        Records the first authority approval or rejection.
+        Source: DLISAP1 paragraph SUBMIT-APPROVAL1.
+
+        **Prerequisites:**
+        - PAYMENT_STATUS must be P (payment completed).
+        - authorityUserCode must be active with AUTHORITY_LEVEL = '1'.
+        - Authority user must be authorised for the application's licenseType
+          (licTypesAuth must contain the licenseType character).
+
+        **Approve:** APPROVAL_1_STATUS → A, APPLICATION_STATUS → A2  
+        **Reject:**  APPROVAL_1_STATUS → R, APPLICATION_STATUS → RE
+      operationId: submitFirstApproval
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalRequest'
+      responses:
+        '200':
+          description: Approval decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Prerequisite not met (payment not completed, invalid authority, not authorised for licence type)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /applications/{applicationId}/approval/second:
+    post:
+      tags: [Approvals]
+      summary: Submit second authority approval
+      description: |
+        Records the second (final) authority approval or rejection.
+        Source: DLISAP2 paragraph SUBMIT-APPROVAL2.
+
+        **Prerequisites:**
+        - APPROVAL_1_STATUS must be A (first approval granted).
+        - authorityUserCode must be active with AUTHORITY_LEVEL = '2'.
+        - **Segregation of duties:** The second approver's AUTHORITY_NAME must
+          differ from the first approver's APPROVAL_1_AUTHORITY. The same
+          authority organisation cannot approve both levels.
+        - Authority user must be authorised for the application's licenseType.
+
+        **Approve:** APPROVAL_2_STATUS → A, APPLICATION_STATUS → AP  
+        **Reject:**  APPROVAL_2_STATUS → R, APPLICATION_STATUS → RE
+      operationId: submitSecondApproval
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalRequest'
+      responses:
+        '200':
+          description: Approval decision recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: |
+            Prerequisite not met:
+            - First approval not yet granted
+            - Invalid authority user at level 2
+            - Second approver is from the same authority as first approver
+            - Authority not authorised for this licence type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /authority-users/{userCode}/validate:
+    get:
+      tags: [Approvals]
+      summary: Validate authority user
+      description: |
+        Validates that a user code is an active authority user and returns
+        their details. Used to pre-validate before submitting approval.
+        Source: DLISAP1/DLISAP2 paragraph VALIDATE-AUTHORITY.
+      operationId: validateAuthorityUser
+      parameters:
+        - name: userCode
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 20
+        - name: level
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ['1', '2']
+          description: Required authority level
+      responses:
+        '200':
+          description: Authority user valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorityUserValidation'
+        '404':
+          description: Authority user not found or not active at requested level
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ─────────────────────────────────────────────────────────────────
+  # LICENCE ISSUANCE
+  # ─────────────────────────────────────────────────────────────────
+
+  /applications/{applicationId}/issue:
+    post:
+      tags: [Licences]
+      summary: Issue licence
+      description: |
+        Issues the driver licence for a fully approved application.
+        Source: DLISISSU paragraph ISSUE-LICENSE.
+
+        **Prerequisite:** APPLICATION_STATUS must be AP (fully approved).
+        All five gates must be satisfied.
+
+        **Licence number format:** {prefix}{vehicleClass}{candidateId}{applicationId}
+        - L → prefix LRN, validity 1 year
+        - P → prefix PRB, validity 2 years
+        - O → prefix OPN, validity 5 years
+
+        Demerit balance initialised to 12.
+        APPLICATION_STATUS → IS after successful issue.
+      operationId: issueLicence
+      parameters:
+        - $ref: '#/components/parameters/ApplicationIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IssueLicenceRequest'
+      responses:
+        '201':
+          description: Licence issued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueLicenceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          description: Application not in AP status — not all approval gates satisfied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /licences/{licenceNumber}:
+    get:
+      tags: [Licences]
+      summary: Get issued licence
+      description: Retrieves a licence record by licence number.
+      operationId: getLicence
+      parameters:
+        - name: licenceNumber
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 20
+      responses:
+        '200':
+          description: Licence found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssuedLicence'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ─────────────────────────────────────────────────────────────────
+  # FEE SCHEDULE
+  # ─────────────────────────────────────────────────────────────────
+
+  /fee-schedule:
+    get:
+      tags: [FeeSchedule]
+      summary: Look up fee schedule
+      description: |
+        Returns the current applicable fee for a given licence type and fee type.
+        Source: DLISAPPL paragraph CALC-FEE.
+        Returns the active row where EFFECTIVE_DATE <= today and
+        (EXPIRY_DATE IS NULL OR EXPIRY_DATE >= today).
+      operationId: getFeeSchedule
+      parameters:
+        - name: licenseType
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/LicenseType'
+        - name: feeType
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/FeeType'
+          description: Defaults to IF (Initial Fee) if omitted
+      responses:
+        '200':
+          description: Fee schedule entry found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeeScheduleEntry'
+        '404':
+          description: No active fee schedule found for this licence type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+# ─────────────────────────────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────────────────────────────
+
+components:
+
+  parameters:
+    CandidateIdPath:
+      name: candidateId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: System-generated candidate identifier
+
+    ApplicationIdPath:
+      name: applicationId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: System-generated application identifier
+
+  responses:
+    BadRequest:
+      description: Validation error — missing or invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+
+    # ── Enumerations ───────────────────────────────────────────────
+
+    LicenseType:
+      type: string
+      enum: [L, P, O]
+      description: |
+        L = Learner (min age 16, valid 1 year)  
+        P = Probation (min age 17, valid 2 years, requires active Learner)  
+        O = Open (min age 18, valid 5 years, requires active Probation)
+
+    ApplicationStatus:
+      type: string
+      enum: [PE, EC, HC, PA, A2, AP, IS, RE]
+      description: |
+        PE = Pending — awaiting eligibility check  
+        EC = Eligibility checked — awaiting history check  
+        HC = History checked — awaiting payment  
+        PA = Payment approved — awaiting first authority approval  
+        A2 = Awaiting second authority approval  
+        AP = Fully approved — ready for issue  
+        IS = Licence issued  
+        RE = Rejected
+
+    CheckStatus:
+      type: string
+      enum: [P, F, U]
+      description: P=Pass, F=Fail, U=Unchecked
+
+    ApprovalDecision:
+      type: string
+      enum: [A, R]
+      description: A=Approve, R=Reject
+
+    ApprovalStatus:
+      type: string
+      enum: [A, R, U]
+      description: A=Approved, R=Rejected, U=Pending
+
+    RecordStatus:
+      type: string
+      enum: [A, I]
+      description: A=Active, I=Inactive
+
+    PaymentMethod:
+      type: string
+      enum: [CC, DC, EF, CS, CH]
+      description: CC=Credit Card, DC=Debit Card, EF=EFT, CS=Cash, CH=Cheque
+
+    FeeType:
+      type: string
+      enum: [IF, RF, LF, PF]
+      description: IF=Initial Fee, RF=Renewal, LF=Late Fee, PF=Penalty Fee
+
+    VehicleClass:
+      type: string
+      enum: [A, B, C, D]
+
+    LicenceStatus:
+      type: string
+      enum: [A, S, E, C, R]
+      description: A=Active, S=Suspended, E=Expired, C=Cancelled, R=Revoked
+
+    # ── Candidate ─────────────────────────────────────────────────
+
+    Candidate:
+      type: object
+      properties:
+        candidateId:
+          type: integer
+          format: int64
+        firstName:
+          type: string
+          maxLength: 30
+        lastName:
+          type: string
+          maxLength: 30
+        dateOfBirth:
+          type: string
+          format: date
+        idNumber:
+          type: string
+          maxLength: 20
+        addressLine1:
+          type: string
+          maxLength: 50
+        addressLine2:
+          type: string
+          maxLength: 50
+          nullable: true
+        city:
+          type: string
+          maxLength: 30
+        stateProvince:
+          type: string
+          maxLength: 30
+        postalCode:
+          type: string
+          maxLength: 10
+          nullable: true
+        country:
+          type: string
+          maxLength: 30
+        phoneNumber:
+          type: string
+          maxLength: 15
+          nullable: true
+        emailAddress:
+          type: string
+          format: email
+          maxLength: 60
+          nullable: true
+        recordStatus:
+          $ref: '#/components/schemas/RecordStatus'
+        createdDate:
+          type: string
+          format: date
+          readOnly: true
+
+    CandidateCreateRequest:
+      type: object
+      required: [firstName, lastName, idNumber, dateOfBirth, addressLine1, city, stateProvince, country]
+      properties:
+        firstName:
+          type: string
+          maxLength: 30
+        lastName:
+          type: string
+          maxLength: 30
+        dateOfBirth:
+          type: string
+          format: date
+        idNumber:
+          type: string
+          maxLength: 20
+          description: National ID — must be unique across active candidates
+        addressLine1:
+          type: string
+          maxLength: 50
+        addressLine2:
+          type: string
+          maxLength: 50
+          nullable: true
+        city:
+          type: string
+          maxLength: 30
+        stateProvince:
+          type: string
+          maxLength: 30
+        postalCode:
+          type: string
+          maxLength: 10
+          nullable: true
+        country:
+          type: string
+          maxLength: 30
+        phoneNumber:
+          type: string
+          maxLength: 15
+          nullable: true
+        emailAddress:
+          type: string
+          format: email
+          maxLength: 60
+          nullable: true
+
+    CandidateCreateResponse:
+      type: object
+      properties:
+        candidateId:
+          type: integer
+          format: int64
+        message:
+          type: string
+          example: CANDIDATE CREATED SUCCESSFULLY
+
+    CandidateUpdateRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          maxLength: 30
+        lastName:
+          type: string
+          maxLength: 30
+        addressLine1:
+          type: string
+          maxLength: 50
+        addressLine2:
+          type: string
+          maxLength: 50
+          nullable: true
+        city:
+          type: string
+          maxLength: 30
+        stateProvince:
+          type: string
+          maxLength: 30
+        postalCode:
+          type: string
+          maxLength: 10
+          nullable: true
+        country:
+          type: string
+          maxLength: 30
+        phoneNumber:
+          type: string
+          maxLength: 15
+          nullable: true
+        emailAddress:
+          type: string
+          format: email
+          maxLength: 60
+          nullable: true
+        recordStatus:
+          $ref: '#/components/schemas/RecordStatus'
+
+    # ── Application ───────────────────────────────────────────────
+
+    ApplicationCreateRequest:
+      type: object
+      required: [candidateId, licenseType]
+      properties:
+        candidateId:
+          type: integer
+          format: int64
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        createdBy:
+          type: string
+          maxLength: 20
+          description: Operator/terminal identifier
+
+    ApplicationCreateResponse:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        applicationStatus:
+          $ref: '#/components/schemas/ApplicationStatus'
+        applicationDate:
+          type: string
+          format: date
+        message:
+          type: string
+          example: APPLICATION SUBMITTED SUCCESSFULLY
+
+    ApplicationStatus:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        applicationStatus:
+          $ref: '#/components/schemas/ApplicationStatus'
+        applicationStatusDescription:
+          type: string
+          description: Human-readable status description
+          example: PAYMENT APPROVED - AWAITING AUTH 1
+        eligibility:
+          $ref: '#/components/schemas/GateStatus'
+        historyCheck:
+          $ref: '#/components/schemas/GateStatus'
+        payment:
+          type: object
+          properties:
+            status:
+              $ref: '#/components/schemas/CheckStatus'
+            reference:
+              type: string
+              nullable: true
+        approval1:
+          $ref: '#/components/schemas/ApprovalGateStatus'
+        approval2:
+          $ref: '#/components/schemas/ApprovalGateStatus'
+        issuedLicence:
+          nullable: true
+          type: object
+          description: Only populated when applicationStatus = IS
+          properties:
+            licenseNumber:
+              type: string
+            expiryDate:
+              type: string
+              format: date
+
+    GateStatus:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/CheckStatus'
+        date:
+          type: string
+          format: date
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+
+    ApprovalGateStatus:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ApprovalStatus'
+        authority:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date
+          nullable: true
+
+    # ── Fee ───────────────────────────────────────────────────────
+
+    FeeResponse:
+      type: object
+      properties:
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        feeType:
+          $ref: '#/components/schemas/FeeType'
+        feeAmount:
+          type: number
+          format: decimal
+          example: 150.00
+        currencyCode:
+          type: string
+          maxLength: 3
+          example: USD
+
+    FeeScheduleEntry:
+      type: object
+      properties:
+        feeScheduleId:
+          type: integer
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        feeType:
+          $ref: '#/components/schemas/FeeType'
+        feeAmount:
+          type: number
+          format: decimal
+        effectiveDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+          nullable: true
+        currencyCode:
+          type: string
+          maxLength: 3
+        description:
+          type: string
+          nullable: true
+        activeStatus:
+          $ref: '#/components/schemas/RecordStatus'
+
+    # ── Eligibility ───────────────────────────────────────────────
+
+    EligibilityCheckRequest:
+      type: object
+      required: [checkedBy]
+      properties:
+        checkedBy:
+          type: string
+          maxLength: 20
+          description: Operator/clerk who performed the check
+
+    EligibilityCheckResponse:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        eligCheckStatus:
+          $ref: '#/components/schemas/CheckStatus'
+        candidateAge:
+          type: integer
+          description: Age calculated at time of check
+        minimumAgeRequired:
+          type: integer
+        failReason:
+          type: string
+          nullable: true
+        applicationStatus:
+          $ref: '#/components/schemas/ApplicationStatus'
+        message:
+          type: string
+
+    EligibilityDetail:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        candidateName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        licenseTypeDescription:
+          type: string
+          example: LEARNER
+        minimumAgeRequired:
+          type: integer
+
+    # ── Driving History ───────────────────────────────────────────
+
+    HistoryCheckRequest:
+      type: object
+      properties:
+        checkedBy:
+          type: string
+          maxLength: 20
+          description: Operator terminal identifier (taken from EIBTRMID equivalent)
+
+    HistoryCheckResponse:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        histCheckStatus:
+          $ref: '#/components/schemas/CheckStatus'
+        totalDemeritPoints:
+          type: integer
+        activeSuspension:
+          type: boolean
+        unpaidFines:
+          type: boolean
+        failReason:
+          type: string
+          nullable: true
+        applicationStatus:
+          $ref: '#/components/schemas/ApplicationStatus'
+        message:
+          type: string
+
+    DrivingHistoryRecord:
+      type: object
+      properties:
+        historyId:
+          type: integer
+          format: int64
+        incidentDate:
+          type: string
+          format: date
+        incidentType:
+          type: string
+          enum: [OF, AC, SU, DQ]
+          description: OF=Offence, AC=Accident, SU=Suspension, DQ=Disqualification
+        incidentDesc:
+          type: string
+          nullable: true
+        demeritPoints:
+          type: integer
+          nullable: true
+        fineAmount:
+          type: number
+          format: decimal
+          nullable: true
+        finePaidStatus:
+          type: string
+          enum: [Y, N]
+          nullable: true
+        suspStartDate:
+          type: string
+          format: date
+          nullable: true
+        suspEndDate:
+          type: string
+          format: date
+          nullable: true
+
+    DrivingHistoryResponse:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        candidateName:
+          type: string
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        totalDemeritPoints:
+          type: integer
+        activeSuspension:
+          type: boolean
+        unpaidFines:
+          type: boolean
+        totalRecords:
+          type: integer
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/DrivingHistoryRecord'
+
+    # ── Payment ───────────────────────────────────────────────────
+
+    PaymentRequest:
+      type: object
+      required: [paymentMethod, paymentReference, processedBy]
+      properties:
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        paymentReference:
+          type: string
+          maxLength: 30
+          description: External payment reference (bank ref, card auth, etc.)
+        processedBy:
+          type: string
+          maxLength: 20
+          description: Operator/clerk code
+
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId:
+          type: integer
+          format: int64
+        receiptNumber:
+          type: string
+          description: "Format: RCP + YYYYMMDD + applicationId"
+        paymentStatus:
+          type: string
+          enum: [S, F, R, P]
+          description: S=Success, F=Failed, R=Reversed, P=Pending
+        message:
+          type: string
+          example: PAYMENT RECORDED SUCCESSFULLY
+
+    PaymentDetail:
+      type: object
+      properties:
+        paymentId:
+          type: integer
+          format: int64
+        applicationId:
+          type: integer
+          format: int64
+        candidateName:
+          type: string
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        paymentAmount:
+          type: number
+          format: decimal
+        currencyCode:
+          type: string
+        paymentMethod:
+          $ref: '#/components/schemas/PaymentMethod'
+        paymentReference:
+          type: string
+        paymentStatus:
+          type: string
+        receiptNumber:
+          type: string
+          nullable: true
+
+    # ── Approval ──────────────────────────────────────────────────
+
+    ApprovalRequest:
+      type: object
+      required: [authorityUserCode, decision]
+      properties:
+        authorityUserCode:
+          type: string
+          maxLength: 20
+          description: Unique code identifying the authority user
+        decision:
+          $ref: '#/components/schemas/ApprovalDecision'
+        decisionNotes:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: Optional notes explaining the decision
+
+    ApprovalResponse:
+      type: object
+      properties:
+        applicationId:
+          type: integer
+          format: int64
+        approvalLevel:
+          type: integer
+          enum: [1, 2]
+        approvalStatus:
+          $ref: '#/components/schemas/ApprovalStatus'
+        authorityName:
+          type: string
+        applicationStatus:
+          $ref: '#/components/schemas/ApplicationStatus'
+        message:
+          type: string
+
+    AuthorityUserValidation:
+      type: object
+      properties:
+        userCode:
+          type: string
+        userName:
+          type: string
+        authorityName:
+          type: string
+        authorityLevel:
+          type: string
+          enum: ['1', '2']
+        licTypesAuth:
+          type: string
+          maxLength: 3
+          description: Licence types this user may approve (e.g. 'LPO')
+        valid:
+          type: boolean
+
+    # ── Licence Issuance ──────────────────────────────────────────
+
+    IssueLicenceRequest:
+      type: object
+      required: [vehicleClass, issuingOfficer, issuingAuthority]
+      properties:
+        vehicleClass:
+          $ref: '#/components/schemas/VehicleClass'
+        issuingOfficer:
+          type: string
+          maxLength: 50
+          description: Name or code of the issuing officer
+        issuingAuthority:
+          type: string
+          maxLength: 50
+          description: Name of the issuing authority organisation
+        restrictions:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: Any restrictions on the licence (e.g. corrective lenses)
+
+    IssueLicenceResponse:
+      type: object
+      properties:
+        licenseNumber:
+          type: string
+          description: "Format: {LRN|PRB|OPN}{vehicleClass}{candidateId}{applicationId}"
+        issueDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        demeritBalance:
+          type: integer
+          example: 12
+        message:
+          type: string
+          example: DRIVER LICENSE ISSUED SUCCESSFULLY
+
+    IssuedLicence:
+      type: object
+      properties:
+        licenseId:
+          type: integer
+          format: int64
+        applicationId:
+          type: integer
+          format: int64
+        candidateId:
+          type: integer
+          format: int64
+        licenseNumber:
+          type: string
+        licenseType:
+          $ref: '#/components/schemas/LicenseType'
+        issueDate:
+          type: string
+          format: date
+        expiryDate:
+          type: string
+          format: date
+        licenseStatus:
+          $ref: '#/components/schemas/LicenceStatus'
+        vehicleClass:
+          $ref: '#/components/schemas/VehicleClass'
+        restrictions:
+          type: string
+          nullable: true
+        demeritBalance:
+          type: integer
+        issuedByAuth:
+          type: string
+        issuedByOfficer:
+          type: string
+        renewalCount:
+          type: integer
+        prevLicenseId:
+          type: integer
+          nullable: true
+
+    # ── Common ────────────────────────────────────────────────────
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        field:
+          type: string
+          nullable: true
+          description: Field name if the error relates to a specific input field

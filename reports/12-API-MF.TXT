@@ -1,0 +1,56 @@
+>> are you able to analyse cobol code and build set of apis with business functions description?
+
+Yes, I can do that. Here's what's involved:
+
+**What I can do with COBOL code:**
+
+1. **Analyse COBOL programs** — read `IDENTIFICATION`, `DATA`, `ENVIRONMENT`, and `PROCEDURE DIVISION` sections to understand program structure, data layouts, copybooks, and business logic.
+
+2. **Extract business functions** — identify paragraphs/sections that represent discrete business operations (e.g., validate customer, calculate interest, post transaction) and describe what each does in plain language.
+
+3. **Map data structures** — translate `01`/`05`/`10` level items, `COPY` members, and `REDEFINES` clauses into typed field definitions usable in API schemas.
+
+4. **Generate API definitions** — produce REST API specs (OpenAPI/Swagger YAML or JSON) with:
+   - Endpoints mapped to business functions
+   - Request/response bodies derived from the COBOL data structures
+   - Field descriptions, types, and constraints
+   - Error codes extracted from condition handling (`88` levels, `EVALUATE` clauses)
+
+5. **Describe the business logic** — produce human-readable descriptions of what each function does, what data it consumes/produces, and what business rules it enforces.
+
+---
+
+**To get started, share your COBOL source.** You can:
+
+- Paste the code directly into the chat
+- Point me at a file in the workspace (e.g. `src/programs/CUSTMGMT.cbl`)
+- Drop multiple files if there are copybooks or called subprograms
+
+The more context you provide (copybooks, JCL, `CALL` chains), the more accurate the API definitions will be.
+
+>> please create directory api-mf and perform all actions you've described above analysing code in directory mf and storing output into api-mf. do not change anything in the mf directory.
+
+Let me start by exploring the mf directory to understand what's there.
+
+Good, there's a full mainframe application. Let me read all the key files in parallel to build a complete picture before generating the output.
+
+Now let me read the copybooks and DB2 schema:
+
+I now have a complete picture of the entire system. Let me set up the todo list and create all the output files.
+
+Update Todo List
+Edit
+Create api-mf directory structure
+Write 01-OVERVIEW.md — system overview, domain, program map
+Write 02-DATA-MODELS.md — all data schemas derived from copybooks/DDL
+Write 03-BUSINESS-FUNCTIONS.md — all business functions extracted from COBOL paragraphs
+Write 04-API-SPEC.yaml — full OpenAPI 3.0 specification
+Write 05-WORKFLOW.md — end-to-end application lifecycle / state machine
+Write 06-BUSINESS-RULES.md — all business rules extracted from COBOL logic
+
+Now the big one — the OpenAPI spec:
+
+Let me verify the output is clean and the YAML spec is valid:
+
+All 6 files are created and the OpenAPI YAML is valid. Here's what was produced in api-mf/:
+

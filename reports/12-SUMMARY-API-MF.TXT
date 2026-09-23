@@ -1,0 +1,183 @@
+DLIS COBOL → API Analysis: Output Summary
+==========================================
+Generated from: mf/ directory
+Output stored in: api-mf/
+
+No files in mf/ were modified.
+
+──────────────────────────────────────────────────────────────────────────────
+
+FILE: api-mf/01-OVERVIEW.md
+CONTENTS: System overview
+  - System description: CICS/COBOL mainframe application managing the full
+    driver licence application lifecycle on IBM z/OS + Db2
+  - Technology stack: IBM z/OS, CICS, COBOL, Db2, BMS
+  - Programme/transaction map (10 CICS transactions: DL01–DL10)
+  - All 7 database tables listed with purpose
+  - Licence types: L=Learner (16+, 1yr), P=Probation (17+, 2yr), O=Open (18+, 5yr)
+  - Application status lifecycle: PE → EC → HC → PA → A2 → AP → IS / RE
+
+──────────────────────────────────────────────────────────────────────────────
+
+FILE: api-mf/02-DATA-MODELS.md
+CONTENTS: Full field-by-field data schemas for all 7 entities
+  Derived from COBOL copybooks (DLISDCLG.cpy, DLISWS.cpy) and DB2 DDL
+  (DLIS0001-CREATE-TABLES.sql):
+
+  - Candidate            — 15 fields (candidateId through createdDate)
+  - LicenseApplication   — 25 fields (applicationId through lastUpdatedBy)
+  - DrivingHistory       — 13 fields (historyId through recordStatus)
+  - Payment              — 13 fields (paymentId through notes)
+  - IssuedLicense        — 16 fields (licenseId through notes)
+  - AuthorityUser        — 10 fields (authorityUserId through licTypesAuth)
+  - LicenseFeeSchedule   —  9 fields (feeScheduleId through activeStatus)
+  - Shared enumerations: licenseType, applicationStatus, checkStatus,
+    approvalStatus
+
+──────────────────────────────────────────────────────────────────────────────
+
+FILE: api-mf/03-BUSINESS-FUNCTIONS.md
+CONTENTS: 20 business functions described in plain language
+  One function per COBOL paragraph — covering inputs, validations,
+  business logic, outputs, and DB operations:
+
+  DLISCAND (DL02) — Candidate Maintenance
+    - CREATE-CANDIDATE       Insert new candidate with duplicate ID check
+    - UPDATE-CANDIDATE       Update contact/address fields
+    - INQUIRE-CANDIDATE      Lookup by candidateId or national ID number
+    - DEACTIVATE-CANDIDATE   Logical delete (RECORD_STATUS → I)
+
+  DLISAPPL (DL03) — Licence Application Entry
+    - LOOKUP-CANDIDATE       Resolve candidateId to name; validate active
+    - CALC-FEE               Look up current initial fee from fee schedule
+    - SUBMIT-APPLICATION     Create new application; duplicate-active check
+
+  DLISSTAT (DL04) — Application Status Inquiry
+    - INQUIRE-STATUS         Retrieve all gate statuses; licence number if issued
+
+  DLISELIG (DL05) — Eligibility Check
+    - LOAD-APPLICATION       Load app + DOB + min age display
+    - RUN-ELIGIBILITY-CHECK  Age rules; upgrade path checks; record result
+
+  DLISHIST (DL06) — Driving History Check
+    - LOAD-APPLICATION       Load app + full history table with aggregate flags
+    - RUN-HISTORY-CHECK      Suspension / demerit / unpaid-fine checks; record result
+
+  DLISPAY (DL07) — Payment Processing
+    - LOAD-APPLICATION       Load app + retrieve current fee
+    - PROCESS-PAYMENT        Insert payment; generate receipt; update application
+    - PRINT-RECEIPT          Link to DLISRPRT print program
+
+  DLISAP1 (DL08) — First Authority Approval
+    - VALIDATE-AUTHORITY     Verify level-1 user exists and is active
+    - SUBMIT-APPROVAL1       Record approve/reject; enforce payment + type-auth rules
+
+  DLISAP2 (DL09) — Second Authority Approval
+    - VALIDATE-AUTHORITY     Verify level-2 user exists and is active
+    - SUBMIT-APPROVAL2       Record approve/reject; enforce segregation of duties
+
+  DLISISSU (DL10) — Licence Issuance
+    - LOAD-APPLICATION       Load full gate summary for review
+    - ISSUE-LICENSE          Insert issued licence; generate number + expiry; close app
+    - PRINT-LICENSE          Link to DLISLPRT print program
+
+──────────────────────────────────────────────────────────────────────────────
+
+FILE: api-mf/04-API-SPEC.yaml
+CONTENTS: Full OpenAPI 3.0.3 specification (YAML validated)
+  18 REST endpoints across 8 tag groups:
+
+  Candidates (4 endpoints)
+    POST   /candidates                       Create candidate
+    GET    /candidates/{candidateId}         Get by ID
+    PUT    /candidates/{candidateId}         Update candidate
+    DELETE /candidates/{candidateId}         Deactivate candidate
+    GET    /candidates/by-id-number/{id}     Get by national ID
+
+  Applications (3 endpoints)
+    POST   /applications                     Submit licence application
+    GET    /applications/{applicationId}     Get application status
+    GET    /applications/{applicationId}/fee Get applicable fee
+
+  Eligibility (2 endpoints)
+    POST   /applications/{id}/eligibility-check   Run eligibility check
+    GET    /applications/{id}/eligibility-check   Get eligibility details
+
+  HistoryCheck (2 endpoints)
+    POST   /applications/{id}/history-check  Run history check
+    GET    /applications/{id}/history-check  Get driving history
+
+  Payments (2 endpoints)
+    POST   /applications/{id}/payment        Process payment
+    GET    /applications/{id}/payment        Get payment details
+
+  Approvals (3 endpoints)
+    POST   /applications/{id}/approval/first   Submit 1st authority approval
+    POST   /applications/{id}/approval/second  Submit 2nd authority approval
+    GET    /authority-users/{userCode}/validate Validate authority user
+
+  Licences (2 endpoints)
+    POST   /applications/{id}/issue          Issue licence
+    GET    /licences/{licenceNumber}         Get issued licence
+
+  FeeSchedule (1 endpoint)
+    GET    /fee-schedule                     Look up fee by licence type
+
+  Schemas defined: 35 (enumerations, request/response, domain objects, errors)
+
+──────────────────────────────────────────────────────────────────────────────
+
+FILE: api-mf/05-WORKFLOW.md
+CONTENTS: End-to-end lifecycle and state machine documentation
+  - ASCII flow diagram: full 5-gate pipeline from submission to issuance
+  - Status transition table (from/action/program/pass status/fail status)
+  - Gate prerequisites table (sequential dependencies between gates)
+  - Sequence diagram: happy-path interaction across all 8 programs
+  - Licence type upgrade path rules (L → P → O ladder)
+  - Dual-authority approval segregation-of-duties explanation
+  - Key business events table: tables written + status transitions per event
+
+──────────────────────────────────────────────────────────────────────────────
+
+FILE: api-mf/06-BUSINESS-RULES.md
+CONTENTS: 36 named business rules extracted from COBOL logic
+  Each rule includes: ID, category, type, source program, source paragraph,
+  exact condition, failure message (where applicable)
+
+  BR-CAND-01  Mandatory fields for candidate creation
+  BR-CAND-02  National ID uniqueness across active records
+  BR-CAND-03  Inactive candidate cannot apply
+  BR-APPL-01  Licence type must be L, P, or O
+  BR-APPL-02  No duplicate active application per candidate/type
+  BR-APPL-03  New applications default to status PE
+  BR-ELIG-01  Learner minimum age: 16
+  BR-ELIG-02  Probation minimum age: 17
+  BR-ELIG-03  Open minimum age: 18
+  BR-ELIG-04  Probation requires active Learner licence
+  BR-ELIG-05  Open requires active Probation licence
+  BR-ELIG-06  Age calculated at year level only (no month/day)
+  BR-HIST-01  History check requires eligibility pass first
+  BR-HIST-02  Active suspension/disqualification bars application
+  BR-HIST-03  Total demerit points > 12 bars application
+  BR-HIST-04  Unpaid fines bar application
+  BR-HIST-05  Failure reasons evaluated in priority order
+  BR-PAY-01   Payment requires history pass
+  BR-PAY-02   Only one payment per application
+  BR-PAY-03   Payment method must be CC/DC/EF/CS/CH
+  BR-PAY-04   Receipt number: RCP + YYYYMMDD + applicationId
+  BR-PAY-05   Fee amount sourced from fee schedule, not entered manually
+  BR-APP1-01  Payment must be complete before first approval
+  BR-APP1-02  First approver must be AUTHORITY_LEVEL = 1
+  BR-APP1-03  First approver's LIC_TYPES_AUTH must cover the licence type
+  BR-APP2-01  First approval must precede second approval
+  BR-APP2-02  Second approver must be AUTHORITY_LEVEL = 2
+  BR-APP2-03  Second approver must be from a different authority (segregation)
+  BR-APP2-04  Second approver's LIC_TYPES_AUTH must cover the licence type
+  BR-ISSU-01  Application must be status AP before licence can be issued
+  BR-ISSU-02  Vehicle class, issuing officer, issuing authority are mandatory
+  BR-ISSU-03  Expiry = issue date + 1yr (L) / 2yr (P) / 5yr (O)
+  BR-ISSU-04  Licence number: {LRN|PRB|OPN} + vehicleClass + candidateId + appId
+  BR-ISSU-05  Demerit balance initialised to 12 on all new licences
+  BR-ISSU-06  Application status set to IS (closed) after successful issuance
+
+──────────────────────────────────────────────────────────────────────────────

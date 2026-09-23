@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DLIS — API Integration Implementation Advice</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1f2328;
+    background: #ffffff;
+    padding: 2rem 1rem;
+  }
+
+  .page { max-width: 820px; margin: 0 auto; }
+
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    color: #57606a;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 2rem 0 0.6rem;
+    color: #1f2328;
+    border-left: 4px solid #3b82d4;
+    padding-left: 0.6rem;
+  }
+
+  h3 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 1.2rem 0 0.4rem;
+    color: #1f2328;
+  }
+
+  p { margin-bottom: 0.75rem; }
+
+  ul, ol {
+    margin: 0.5rem 0 0.75rem 1.4rem;
+  }
+
+  li { margin-bottom: 0.25rem; }
+
+  code {
+    font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+    font-size: 0.82rem;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+  }
+
+  pre {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 5px;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    margin: 0.5rem 0 1rem;
+    font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .label {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: #e5e7eb;
+    color: #57606a;
+    border-radius: 3px;
+    padding: 0.1em 0.5em;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .label.js   { background: #fef9c3; color: #854d0e; }
+  .label.py   { background: #dbeafe; color: #1e40af; }
+  .label.go   { background: #dcfce7; color: #166534; }
+  .label.java { background: #fce7f3; color: #9d174d; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0 1.2rem;
+    font-size: 0.83rem;
+  }
+
+  th {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    padding: 0.45rem 0.7rem;
+    text-align: left;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  td {
+    border: 1px solid #e5e7eb;
+    padding: 0.4rem 0.7rem;
+    vertical-align: top;
+  }
+
+  tr:nth-child(even) td { background: #fafafa; }
+
+  .check   { color: #16a34a; font-weight: 700; }
+  .warn    { color: #d97706; font-weight: 700; }
+  .neutral { color: #6b7280; }
+
+  .callout {
+    background: #f0f6ff;
+    border-left: 4px solid #3b82d4;
+    border-radius: 0 4px 4px 0;
+    padding: 0.7rem 1rem;
+    margin: 0.75rem 0 1rem;
+    font-size: 0.88rem;
+  }
+
+  .callout.warn {
+    background: #fffbeb;
+    border-left-color: #d97706;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 2rem 0;
+  }
+
+  .toc {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 5px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 2rem;
+    font-size: 0.85rem;
+  }
+
+  .toc-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .toc ol { margin-left: 1.2rem; }
+  .toc li { margin-bottom: 0.2rem; }
+  .toc a { color: #3b82d4; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  .arch-diagram {
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 5px;
+    padding: 1.2rem;
+    text-align: center;
+    margin: 0.75rem 0 1.2rem;
+  }
+
+  .arch-diagram table {
+    margin: 0 auto;
+    width: auto;
+    font-size: 0.82rem;
+  }
+
+  .arch-diagram td {
+    border: none;
+    padding: 0.2rem 1rem;
+    text-align: center;
+  }
+
+  .arch-box {
+    display: inline-block;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 0.3rem 0.9rem;
+    background: #ffffff;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .arch-box.highlight { background: #dbeafe; border-color: #3b82d4; }
+  .arch-box.muted     { background: #f3f4f6; color: #6b7280; }
+
+  .arrow { color: #9ca3af; font-size: 1rem; line-height: 1; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font-size: 0.75rem;
+    color: #57606a;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>DLIS — API Integration Implementation Advice</h1>
+  <p class="subtitle">
+    How to implement the REST API layer between REST clients and the existing CICS/COBOL programs.
+    Source system: Driver License Issuance System (DLIS) on IBM z/OS · CICS · Db2.
+  </p>
+
+  <!-- TOC -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol>
+      <li><a href="#architecture">The Integration Layers</a></li>
+      <li><a href="#option-a">Option A — z/OS Connect EE (No Custom Code)</a></li>
+      <li><a href="#option-b">Option B — Node.js + CTG</a></li>
+      <li><a href="#option-c">Option C — Python + MQ or CTG</a></li>
+      <li><a href="#option-d">Option D — Go</a></li>
+      <li><a href="#option-e">Option E — API Gateway + z/OS Connect</a></li>
+      <li><a href="#comparison">Honest Comparison</a></li>
+      <li><a href="#common">What Is Common Across All Options</a></li>
+    </ol>
+  </div>
+
+  <!-- Architecture -->
+  <h2 id="architecture">The Integration Layers</h2>
+  <p>
+    Regardless of the implementation language or product chosen, the same stack of layers sits
+    between a REST client and the COBOL programs. The question is which layer you write yourself
+    versus which is handled by a product.
+  </p>
+
+  <div class="arch-diagram">
+    <table>
+      <tr><td><span class="arch-box muted">REST Client</span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box muted">API Gateway / Load Balancer &nbsp;<span style="font-weight:400;font-size:0.75rem">(optional)</span></span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box highlight">Integration Layer &nbsp;<span style="font-weight:400;font-size:0.75rem">← this is what you're implementing</span></span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box muted">Mainframe Transport &nbsp;<span style="font-weight:400;font-size:0.75rem">(CTG / MQ / z/OS Connect)</span></span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box muted">CICS / COBOL Programs</span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box muted">Db2 for z/OS</span></td></tr>
+    </table>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Option A -->
+  <h2 id="option-a">Option A — z/OS Connect EE <span style="font-weight:400;font-size:0.85rem;color:#57606a">(No Custom Code at All)</span></h2>
+
+  <p>
+    IBM's purpose-built product for exposing CICS, IMS, and batch programs as REST/JSON services.
+    No application framework needed on either side — just descriptor files.
+  </p>
+
+  <h3>How it works</h3>
+  <ul>
+    <li>You provide a <strong>Service Provider Archive (SAR)</strong> — a JSON descriptor mapping
+        REST fields to COMMAREA / channel fields.</li>
+    <li>z/OS Connect EE auto-generates an OpenAPI spec and handles all JSON ↔ COMMAREA
+        transformation, EBCDIC conversion, and packed decimal encoding.</li>
+    <li>No COBOL changes required.</li>
+  </ul>
+
+  <h3>What you write</h3>
+  <ul>
+    <li>SAR descriptor files (JSON mapping definitions — one per COBOL program).</li>
+    <li>Optionally a thin API management layer (API Connect / Kong) in front for auth, rate limiting.</li>
+  </ul>
+
+  <div class="callout warn">
+    <strong>Trade-off:</strong> IBM licence cost is significant.
+    If you have the licence, this is the lowest-effort path — hours to first working call
+    versus days or weeks for a custom integration.
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- Option B -->
+  <h2 id="option-b">Option B — Node.js + IBM CICS Transaction Gateway</h2>
+
+  <p>
+    IBM provides an official Node.js client for CTG. This is the most common non-Java path
+    and suits teams already using JavaScript/TypeScript across the stack.
+  </p>
+
+  <h3>Architecture</h3>
+  <pre>REST Client
+    │
+    ▼
+Node.js  (Express / Fastify)
+    ├── routes/          ← REST endpoints matching OpenAPI spec
+    ├── services/        ← business orchestration (5-gate pipeline)
+    ├── mappers/         ← JSON ↔ COMMAREA byte buffers (one per program)
+    └── ctg/             ← IBM CTG Node.js client
+         │
+         ▼
+    CICS Transaction Gateway  (TCP/IP, port 2006)
+         │
+         ▼
+    CICS / COBOL programs</pre>
+
+  <h3>CTG call</h3>
+  <div class="label js">JavaScript</div>
+  <pre>const { GatewayClient } = require('cics-ctg-client'); // IBM npm package
+
+const client = new GatewayClient({ host: 'mf.example.com', port: 2006 });
+
+const commarea = packDLISCAND(request); // Buffer(350)
+const response = await client.call({
+    program:       'DLISCAND',
+    commarea,
+    commareaLength: 350
+});
+const result = unpackDLISCAND(response.commarea);</pre>
+
+  <h3>COMMAREA packing helpers</h3>
+  <div class="label js">JavaScript</div>
+  <pre>const iconv = require('iconv-lite');
+
+// Fixed-length EBCDIC string (COBOL PIC X)
+function packString(value, length) {
+    const padded = (value ?? '').padEnd(length, ' ').slice(0, length);
+    return iconv.encode(padded, 'cp1047');
+}
+
+// COMP-3 packed decimal — e.g. S9(10) COMP-3 = 6 bytes
+function packComp3(value, digits) {
+    const nBytes = Math.ceil((digits + 1) / 2);
+    const buf = Buffer.alloc(nBytes, 0);
+    const str = Math.abs(value).toString().padStart(digits, '0');
+    for (let i = 0; i &lt; digits; i++) {
+        const nibble = parseInt(str[i]);
+        const byteIdx = Math.floor(i / 2);
+        if (i % 2 === 0) buf[byteIdx] = nibble &lt;&lt; 4;
+        else             buf[byteIdx] |= nibble;
+    }
+    // Sign nibble: 0xC = positive, 0xD = negative
+    buf[nBytes - 1] = (buf[nBytes - 1] &amp; 0xF0) | (value &gt;= 0 ? 0x0C : 0x0D);
+    return buf;
+}
+
+// COMP halfword S9(4) = 2-byte big-endian signed integer
+function packComp(value) {
+    const buf = Buffer.alloc(2);
+    buf.writeInt16BE(value);
+    return buf;
+}</pre>
+
+  <hr class="section-divider">
+
+  <!-- Option C -->
+  <h2 id="option-c">Option C — Python + IBM MQ or CTG</h2>
+
+  <p>
+    Good fit for Python-first teams or where data/analytical workloads are already in Python.
+    IBM MQ via <code>pymqi</code> is well established; CTG can also be reached over raw sockets.
+  </p>
+
+  <h3>Architecture</h3>
+  <pre>REST Client
+    │
+    ▼
+Python  (FastAPI or Flask)
+    ├── routers/         ← REST endpoints
+    ├── services/        ← orchestration
+    ├── mappers/         ← struct pack/unpack
+    └── transport/       ← pymqi (MQ)  or  ctg client (TCP)
+         │
+         ▼
+    IBM MQ  ──or──  CTG
+         │
+         ▼
+    CICS / COBOL</pre>
+
+  <h3>COMMAREA packing helpers</h3>
+  <div class="label py">Python</div>
+  <pre>import struct
+
+def pack_string(value: str, length: int) -&gt; bytes:
+    """Fixed-length EBCDIC string (COBOL PIC X)."""
+    padded = (value or '').ljust(length)[:length]
+    return padded.encode('cp1047')
+
+def pack_comp3(value: int, digits: int) -&gt; bytes:
+    """COMP-3 packed decimal. S9(10) COMP-3 = 6 bytes."""
+    n_bytes = (digits + 2) // 2
+    result = bytearray(n_bytes)
+    abs_val = abs(value)
+    digits_str = str(abs_val).zfill(digits)
+    for i, ch in enumerate(digits_str):
+        nibble = int(ch)
+        byte_idx = i // 2
+        if i % 2 == 0:
+            result[byte_idx] = nibble &lt;&lt; 4
+        else:
+            result[byte_idx] |= nibble
+    # Sign: 0x0C positive, 0x0D negative
+    result[-1] = (result[-1] &amp; 0xF0) | (0x0C if value &gt;= 0 else 0x0D)
+    return bytes(result)
+
+def pack_comp(value: int) -&gt; bytes:
+    """COMP halfword S9(4) = 2-byte big-endian signed."""
+    return struct.pack('&gt;h', value)</pre>
+
+  <h3>MQ transport via pymqi</h3>
+  <div class="label py">Python</div>
+  <pre>import pymqi
+
+qmgr = pymqi.connect('QMGR01', 'CICS.REQUEST.QUEUE', '192.168.1.10(1414)')
+
+def call_cics(program: str, commarea: bytes) -&gt; bytes:
+    md = pymqi.MD()
+    md.ReplyToQ  = b'CICS.REPLY.QUEUE'
+    md.MsgType   = pymqi.CMQC.MQMT_REQUEST
+    q = pymqi.Queue(qmgr, 'CICS.REQUEST.QUEUE')
+    q.put(commarea, md)
+    # Receive from reply queue correlating by CorrelationId
+    reply_q = pymqi.Queue(qmgr, 'CICS.REPLY.QUEUE')
+    gmo = pymqi.GMO()
+    gmo.MatchOptions = pymqi.CMQC.MQMO_MATCH_CORREL_ID
+    gmo.WaitInterval = 5000  # 5 second timeout
+    return reply_q.get(350, md, gmo)</pre>
+
+  <hr class="section-divider">
+
+  <!-- Option D -->
+  <h2 id="option-d">Option D — Go</h2>
+
+  <p>
+    Increasingly popular for mainframe integration work. Small, self-contained binaries,
+    excellent <code>encoding/binary</code> support, and strong concurrency for high-throughput
+    scenarios. CTG can be reached directly over raw TCP without an IBM SDK.
+  </p>
+
+  <h3>Architecture</h3>
+  <pre>REST Client
+    │
+    ▼
+Go  (net/http + Chi  or  standard library)
+    ├── handlers/        ← REST endpoints
+    ├── services/        ← orchestration
+    ├── mappers/         ← encoding/binary pack/unpack
+    └── transport/       ← raw TCP to CTG  or  ibm-messaging/mq-golang
+         │
+         ▼
+    CTG (TCP port 2006)  ──or──  IBM MQ
+         │
+         ▼
+    CICS / COBOL</pre>
+
+  <h3>COMMAREA packing helpers</h3>
+  <div class="label go">Go</div>
+  <pre>import (
+    "encoding/binary"
+    "fmt"
+    "golang.org/x/text/encoding/charmap"
+)
+
+// packString — fixed-length EBCDIC (COBOL PIC X)
+func packString(s string, length int) []byte {
+    padded := fmt.Sprintf("%-*s", length, s)
+    if len(padded) &gt; length { padded = padded[:length] }
+    enc := charmap.CodePage1047.NewEncoder()
+    result, _ := enc.Bytes([]byte(padded))
+    return result
+}
+
+// packComp3 — COMP-3 packed decimal, e.g. S9(10) = 6 bytes
+func packComp3(value int64, digits int) []byte {
+    nBytes := (digits + 2) / 2
+    buf := make([]byte, nBytes)
+    abs := value
+    if abs &lt; 0 { abs = -abs }
+    s := fmt.Sprintf("%0*d", digits, abs)
+    for i, ch := range s {
+        d := byte(ch - '0')
+        if i%2 == 0 { buf[i/2] = d &lt;&lt; 4 } else { buf[i/2] |= d }
+    }
+    sign := byte(0x0C)
+    if value &lt; 0 { sign = 0x0D }
+    buf[nBytes-1] = (buf[nBytes-1] &amp; 0xF0) | sign
+    return buf
+}
+
+// packComp — COMP halfword S9(4) = big-endian int16
+func packComp(value int16) []byte {
+    buf := make([]byte, 2)
+    binary.BigEndian.PutUint16(buf, uint16(value))
+    return buf
+}</pre>
+
+  <h3>Raw TCP call to CTG (no IBM SDK required)</h3>
+  <div class="label go">Go</div>
+  <pre>conn, _ := net.Dial("tcp", "mf.example.com:2006")
+// CTG ECI wire protocol: write request header + commarea, read response.
+// IBM documents the protocol; a ~200-line Go client covers it fully.</pre>
+
+  <hr class="section-divider">
+
+  <!-- Option E -->
+  <h2 id="option-e">Option E — API Gateway + z/OS Connect EE</h2>
+
+  <p>
+    If you already operate an API management platform (Kong, IBM API Connect, Apigee),
+    the integration layer becomes pure configuration — no application code at all.
+  </p>
+
+  <div class="arch-diagram">
+    <table>
+      <tr><td><span class="arch-box muted">REST Client</span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box muted">API Gateway (Kong / API Connect) &nbsp;<span style="font-weight:400;font-size:0.75rem">JWT auth · rate limiting · routing</span></span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box highlight">z/OS Connect EE &nbsp;<span style="font-weight:400;font-size:0.75rem">JSON ↔ COMMAREA · EBCDIC conversion</span></span></td></tr>
+      <tr><td><span class="arrow">↓</span></td></tr>
+      <tr><td><span class="arch-box muted">CICS / COBOL Programs</span></td></tr>
+    </table>
+  </div>
+
+  <p>
+    Zero application code — purely configuration and descriptor files.
+    z/OS Connect generates the OpenAPI spec automatically from the COMMAREA layouts.
+  </p>
+
+  <hr class="section-divider">
+
+  <!-- Comparison -->
+  <h2 id="comparison">Honest Comparison</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Criterion</th>
+        <th>Node.js</th>
+        <th>Python</th>
+        <th>Go</th>
+        <th>z/OS Connect</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>IBM CTG support</td>
+        <td><span class="check">✔</span> Official npm</td>
+        <td><span class="warn">⚠</span> Community</td>
+        <td><span class="warn">⚠</span> Raw TCP</td>
+        <td><span class="check">✔</span> Native</td>
+      </tr>
+      <tr>
+        <td>IBM MQ support</td>
+        <td><span class="check">✔</span> Official npm</td>
+        <td><span class="check">✔</span> pymqi</td>
+        <td><span class="check">✔</span> mq-golang</td>
+        <td><span class="neutral">N/A</span></td>
+      </tr>
+      <tr>
+        <td>COMP-3 libraries</td>
+        <td>Manual / npm</td>
+        <td>Manual / struct</td>
+        <td>Manual / encoding/binary</td>
+        <td>Built-in</td>
+      </tr>
+      <tr>
+        <td>EBCDIC conversion</td>
+        <td>iconv-lite</td>
+        <td>codecs (built-in)</td>
+        <td>x/text/charmap</td>
+        <td>Built-in</td>
+      </tr>
+      <tr>
+        <td>Team skill fit</td>
+        <td>Wide</td>
+        <td>Wide / Data</td>
+        <td>Systems</td>
+        <td>IBM specialists</td>
+      </tr>
+      <tr>
+        <td>Licence cost</td>
+        <td><span class="check">None</span></td>
+        <td><span class="check">None</span></td>
+        <td><span class="check">None</span></td>
+        <td><span class="warn">High</span></td>
+      </tr>
+      <tr>
+        <td>Time to first working call</td>
+        <td>1–2 days</td>
+        <td>1–2 days</td>
+        <td>2–3 days</td>
+        <td>Hours (if licensed)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <hr class="section-divider">
+
+  <!-- Common -->
+  <h2 id="common">What Is Common Across All Options</h2>
+
+  <p>
+    Regardless of language or product, the same three layers are unavoidable:
+  </p>
+
+  <h3>1 — Mapper Layer (bulk of the work)</h3>
+  <p>
+    Translates JSON request fields into a packed byte buffer at exact byte offsets derived from
+    the COBOL copybooks, and unpacks the response buffer back into JSON. One mapper per COBOL
+    program. The hard sub-problems are:
+  </p>
+  <ul>
+    <li><strong>COMP-3 (packed decimal)</strong> — digits stored two-per-byte with a sign nibble
+        (<code>0x0C</code> = positive, <code>0x0D</code> = negative). Affects
+        <code>CANDIDATE-ID</code>, <code>APPLICATION-ID</code>, <code>FEE-AMOUNT</code>, etc.</li>
+    <li><strong>EBCDIC ↔ UTF-8</strong> — all <code>PIC X</code> strings are EBCDIC on z/OS.
+        Every string field requires transcoding (Java <code>Cp1047</code>, Python <code>cp1047</code>,
+        Go <code>charmap.CodePage1047</code>).</li>
+    <li><strong>Fixed-length padding</strong> — COBOL strings are space-padded to their declared
+        length. Serialiser must right-pad; deserialiser must <code>trim()</code> trailing spaces.</li>
+    <li><strong>COMP binary fields</strong> — <code>PIC S9(4) COMP</code> = 2-byte big-endian signed;
+        <code>PIC S9(9) COMP</code> = 4-byte big-endian signed.</li>
+  </ul>
+
+  <h3>2 — Transport Layer</h3>
+  <p>
+    The actual network call to CICS — via CTG, IBM MQ, or z/OS Connect. Roughly the same
+    complexity in any language once the mapper is in place.
+  </p>
+  <ul>
+    <li><strong>CTG (synchronous)</strong> — best for request/response flows. Native latency.</li>
+    <li><strong>MQ (asynchronous)</strong> — better resilience; requires correlation-ID handling
+        to present a synchronous REST interface.</li>
+  </ul>
+
+  <h3>3 — Orchestration Layer</h3>
+  <p>
+    For multi-step flows — the DLIS 5-gate pipeline — something must call program A, inspect the
+    result, then conditionally call program B. The CICS menu (<code>DLISMENU</code>) handled this
+    with screen navigation; the REST service layer replaces that with sequential service calls.
+  </p>
+
+  <div class="callout">
+    <strong>DLIS scope estimate:</strong>
+    10 mapper modules (one per COBOL program) × ~50–100 lines each = roughly
+    <strong>500–1,000 lines of integration code</strong> in any language, plus the REST
+    router/controller layer on top. A focused team should have all mappers working and
+    validated against live CICS in <strong>2–4 weeks</strong>.
+  </div>
+
+  <footer>Made with IBM Bob</footer>
+
+</div>
+</body>
+</html>
